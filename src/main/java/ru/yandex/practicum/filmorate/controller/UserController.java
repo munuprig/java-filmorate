@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("users")
 public class UserController {
-    private static int idUserGenerator = 0;
+    private int idUserGenerator = 0;
     private final HashMap<Integer, User> users = new HashMap<>();
 
     @GetMapping
