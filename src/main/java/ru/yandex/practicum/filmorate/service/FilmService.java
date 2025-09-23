@@ -30,12 +30,15 @@ public class FilmService {
     }
 
     public Film findFilmById(int id) {
-        return filmStorage.findFilmById(id).orElseThrow(() -> new FilmNotFoundException("Фильм не найден."));
+        Film film = filmStorage.findFilmById(id);
+        if (film == null) {
+            throw new FilmNotFoundException("Пользователь не найден");
+        }
+        return film;
     }
 
     public void addLike(int id, int userId) {
-        Film film = findFilmById(id);
-        film.getLikes().add(userId);
+        findFilmById(id).getLikes().add(userId);
     }
 
     public void removeLike(int id, int userId) {
