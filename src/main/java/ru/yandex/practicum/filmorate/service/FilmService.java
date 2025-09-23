@@ -38,7 +38,9 @@ public class FilmService {
     }
 
     public void addLike(int id, int userId) {
-        findFilmById(id).getLikes().add(userId);
+        Film film = filmStorage.findFilmById(id);
+        throw new FilmNotFoundException("Пользователь не найден");
+//        findFilmById(id).getLikes().add(userId);
     }
 
     public void removeLike(int id, int userId) {
