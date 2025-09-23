@@ -34,13 +34,15 @@ public class FilmService {
     }
 
     public void addLike(int id, int userId) {
-        findFilmById(id).getLikes().add(userId);
+        Film film = findFilmById(id);
+        film.getLikes().add(userId);
     }
 
     public void removeLike(int id, int userId) {
-        Set<Integer> likes = findFilmById(id).getLikes();
+        Film film = findFilmById(id);
+        Set<Integer> likes = film.getLikes();
         if (!likes.contains(userId)) {
-            throw new UserNotFoundException("Пользователь не найден.");
+            throw new UserNotFoundException("Пользователь не нашелся среди тех, кто поставил лайк этому фильму.");
         }
         likes.remove(userId);
     }
