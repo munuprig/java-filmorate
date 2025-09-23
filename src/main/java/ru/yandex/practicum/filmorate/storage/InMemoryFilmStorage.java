@@ -1,13 +1,15 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.*;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
-    private int idFilmGenerator = 0;
+
+    private static int generatorId = 0;
     private final Map<Integer, Film> films = new HashMap<>();
 
     @Override
@@ -17,13 +19,17 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        film.setId(++idFilmGenerator);
+        film.setId(++generatorId);
         films.put(film.getId(), film);
         return film;
     }
 
     @Override
     public Film update(Film film) {
+        int id = film.getId();
+        if(!films.containsKey(id)) {
+            throw new FilmNotFoundException("Фильм не найден.");
+        }
         films.put(film.getId(), film);
         return film;
     }

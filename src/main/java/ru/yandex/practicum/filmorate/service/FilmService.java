@@ -8,12 +8,11 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class FilmService {
     private final FilmStorage filmStorage;
 
@@ -26,7 +25,6 @@ public class FilmService {
     }
 
     public Film update(Film film) {
-        findFilmById(film.getId());
         return filmStorage.update(film);
     }
 
@@ -35,23 +33,15 @@ public class FilmService {
     }
 
     public void addLike(int id, int userId) {
-        Optional<Film> filmOptional = filmStorage.findFilmById(id);
-        if (filmOptional.isEmpty()) {
-            throw new FilmNotFoundException("Фильм с указанным ID не найден.");
-        }
-        filmOptional.get().getLikes().add(userId);
+        findFilmById(id).getLikes().add(userId);
     }
 
     public void removeLike(int id, int userId) {
-        Optional<Film> filmOptional = filmStorage.findFilmById(id);
-        if (filmOptional.isEmpty()) {
-            throw new FilmNotFoundException("Фильм с указанным ID не найден.");
-        }
-        Set<Integer> likes = filmOptional.get().getLikes();
+        Set<Integer> likes = findFilmById(id).getLikes();
         if (!likes.contains(userId)) {
-            throw new UserNotFoundException("Пользователь не нашелся среди тех, кто поставил лайк этому фильму.");
+            throw new UserNotFoundException("Пользователь не найден.");
         }
-        likes.remove(userId);
+        findFilmById(id).getLikes().remove(userId);
     }
 
     public List<Film> findPopular(int count) {

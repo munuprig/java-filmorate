@@ -6,11 +6,12 @@ import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class UserService {
     private final UserStorage userStorage;
 
@@ -25,12 +26,11 @@ public class UserService {
 
     public User update(User user) {
         validate(user);
-        findUserById(user.getId());
         return userStorage.update(user);
     }
 
     public User findUserById(int id) {
-        return userStorage.findUserById(id).orElseThrow(() -> new UserNotFoundException("Пользователь не найден."));
+        return userStorage.findUserById(id).orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
     }
 
     public void addFriend(int id, int friendId) {
@@ -42,12 +42,16 @@ public class UserService {
     }
 
     public List<User> findAllFriends(int id) {
-        return Optional.ofNullable(findUserById(id))              // Получаем пользователя по ID
-                .map(User::getFriends)                    // Извлекаем множество друзей
-                .orElse(Collections.emptySet())           // Возвращаем пустое множество, если друзей нет
-                .stream()                                 // Создаем поток из множества друзей
-                .map(this::findUserById)                  // По каждому другу находим объект User
-                .collect(Collectors.toList());            // Собираем в итоговый список
+        List<User> friendsList = new ArrayList<>();
+        Set<Integer> friends = findUserById(id).getFriends();
+        if (friends == null) {
+            return friendsList;
+        }
+        for (Integer friendId : friends) {
+            User friend = findUserById(friendId);
+            friendsList.add(friend);
+        }
+        return friendsList;
     }
 
     public List<User> findCommonFriends(int id, int otherId) {
