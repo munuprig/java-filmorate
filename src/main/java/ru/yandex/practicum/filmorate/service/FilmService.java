@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,22 +31,23 @@ public class FilmService {
     }
 
     public Film findFilmById(int id) {
-        Film film = filmStorage.findFilmById(id);
-        if (film == null) {
-            throw new FilmNotFoundException("Пользователь не найден");
-        }
-        return film;
+        return filmStorage.findFilmById(id).orElseThrow(() -> new FilmNotFoundException("Фильм не найден."));
     }
 
     public void addLike(int id, int userId) {
-        Film film = filmStorage.findFilmById(id);
-        throw new FilmNotFoundException("Пользователь не найден");
-//        findFilmById(id).getLikes().add(userId);
+        Optional<Film> filmOptional = filmStorage.findFilmById(id);
+        if (filmOptional.isEmpty()) {
+            throw new FilmNotFoundException("Фильм с указанным ID не найден.");
+        }
+        filmOptional.get().getLikes().add(userId);
     }
 
     public void removeLike(int id, int userId) {
-        Film film = findFilmById(id);
-        Set<Integer> likes = film.getLikes();
+        Optional<Film> filmOptional = filmStorage.findFilmById(id);
+        if (filmOptional.isEmpty()) {
+            throw new FilmNotFoundException("Фильм с указанным ID не найден.");
+        }
+        Set<Integer> likes = filmOptional.get().getLikes();
         if (!likes.contains(userId)) {
             throw new UserNotFoundException("Пользователь не нашелся среди тех, кто поставил лайк этому фильму.");
         }

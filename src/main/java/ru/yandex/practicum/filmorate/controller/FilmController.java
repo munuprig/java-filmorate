@@ -4,8 +4,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -52,14 +55,22 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addFilmLike(@PathVariable("id") int id, @PathVariable("userId") int userId) {
-        log.info("PUT / {} / like / {}", id, userId);
-        filmService.addLike(id, userId);
+    public ResponseEntity<Void> addFilmLike(@PathVariable("id") int id, @PathVariable("userId") int userId) {
+        try {
+            filmService.addLike(id, userId);
+            return ResponseEntity.ok().build();
+        } catch (FilmNotFoundException | UserNotFoundException e) {
+            throw e;
+        }
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeFilmLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
-        log.info("DELETE / {} / like / {}", id, userId);
-        filmService.removeLike(id, userId);
+    public ResponseEntity<Void> removeFilmLike(@PathVariable("id") int id, @PathVariable("userId") int userId) {
+        try {
+            filmService.removeLike(id, userId);
+            return ResponseEntity.ok().build();
+        } catch (FilmNotFoundException | UserNotFoundException e) {
+            throw e;
+        }
     }
 }
