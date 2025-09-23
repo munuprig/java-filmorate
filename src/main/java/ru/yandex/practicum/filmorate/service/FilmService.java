@@ -33,6 +33,9 @@ public class FilmService {
     }
 
     public void addLike(int id, int userId) {
+        if (id < 0 || userId < 0) {
+            throw new UserNotFoundException("Пользователь не найден.");
+        }
         findFilmById(id).getLikes().add(userId);
     }
 
