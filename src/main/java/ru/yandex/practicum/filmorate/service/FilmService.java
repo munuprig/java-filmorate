@@ -27,6 +27,7 @@ public class FilmService {
     }
 
     public Film update(Film film) {
+        findFilmById(film.getId());
         return filmStorage.update(film);
     }
 
@@ -35,15 +36,14 @@ public class FilmService {
     }
 
     public void addLike(int id, int userId) {
-        if (userStorage.findUserById(id).isEmpty() || userStorage.findUserById(userId).isEmpty()) {
+        if (userStorage.findUserById(userId).isEmpty()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
         findFilmById(id).getLikes().add(userId);
     }
 
     public void removeLike(int id, int userId) {
-        Set<Integer> likes = findFilmById(id).getLikes();
-        if (!likes.contains(userId)) {
+        if (userStorage.findUserById(userId).isEmpty()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
         findFilmById(id).getLikes().remove(userId);

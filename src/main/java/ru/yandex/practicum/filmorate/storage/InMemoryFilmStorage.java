@@ -9,7 +9,7 @@ import java.util.*;
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
 
-    private static int generatorId = 0;
+    private static int idFilmGenerator = 0;
     private final Map<Integer, Film> films = new HashMap<>();
 
     @Override
@@ -19,17 +19,13 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        film.setId(++generatorId);
+        film.setId(++idFilmGenerator);
         films.put(film.getId(), film);
         return film;
     }
 
     @Override
     public Film update(Film film) {
-        int id = film.getId();
-        if (!films.containsKey(id)) {
-            throw new FilmNotFoundException("Фильм не найден.");
-        }
         films.put(film.getId(), film);
         return film;
     }

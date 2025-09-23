@@ -6,9 +6,8 @@ import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -26,11 +25,12 @@ public class UserService {
 
     public User update(User user) {
         validate(user);
+        findUserById(user.getId());
         return userStorage.update(user);
     }
 
     public User findUserById(int id) {
-        return userStorage.findUserById(id).orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
+        return userStorage.findUserById(id).orElseThrow(() -> new UserNotFoundException("Пользователь не найден."));
     }
 
     public void addFriend(int id, int friendId) {
@@ -42,16 +42,14 @@ public class UserService {
     }
 
     public List<User> findAllFriends(int id) {
-        List<User> friendsList = new ArrayList<>();
-        Set<Integer> friends = findUserById(id).getFriends();
-        if (friends == null) {
-            return friendsList;
+        User user = findUserById(id);
+        if (user != null) {
+            return user.getFriends().stream()
+                    .map(this::findUserById)
+                    .collect(Collectors.toList());
+        } else {
+            return Collections.emptyList();
         }
-        for (Integer friendId : friends) {
-            User friend = findUserById(friendId);
-            friendsList.add(friend);
-        }
-        return friendsList;
     }
 
     public List<User> findCommonFriends(int id, int otherId) {

@@ -8,7 +8,7 @@ import java.util.*;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
-    private static int generatorId = 0;
+    private static int idUserGenerator = 0;
     private final Map<Integer, User> users = new HashMap<>();
 
     @Override
@@ -18,18 +18,14 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User create(User user) {
-        user.setId(++generatorId);
+        user.setId(++idUserGenerator);
         users.put(user.getId(), user);
         return user;
     }
 
     @Override
     public User update(User user) {
-        int id = user.getId();
-        if (!users.containsKey(id)) {
-            throw new UserNotFoundException("Пользователь не найден.");
-        }
-        users.put(id, user);
+        users.put(user.getId(), user);
         return user;
     }
 
