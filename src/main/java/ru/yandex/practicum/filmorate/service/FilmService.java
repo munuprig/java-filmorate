@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
 import java.util.Set;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
 
     public List<Film> findAll() {
         return filmStorage.findAll();
@@ -33,7 +35,7 @@ public class FilmService {
     }
 
     public void addLike(int id, int userId) {
-        if (id < 0 || userId < 0) {
+        if (userStorage.findUserById(id).isEmpty() || userStorage.findUserById(userId).isEmpty()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
         findFilmById(id).getLikes().add(userId);
