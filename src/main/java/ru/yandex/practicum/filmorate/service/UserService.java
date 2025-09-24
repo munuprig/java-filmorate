@@ -42,14 +42,9 @@ public class UserService {
     }
 
     public List<User> findAllFriends(int id) {
-        User user = findUserById(id);
-        if (user != null) {
-            return user.getFriends().stream()
-                    .map(this::findUserById)
-                    .collect(Collectors.toList());
-        } else {
-            return Collections.emptyList();
-        }
+        return findUserById(id).getFriends().stream()
+                .map(this::findUserById)
+                .collect(Collectors.toList());
     }
 
     public List<User> findCommonFriends(int id, int otherId) {
