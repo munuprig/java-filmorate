@@ -7,13 +7,15 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-public class FilmValidationTest {
+class FilmValidationTest {
     private Film film;
     private static Validator validator;
 
@@ -31,6 +33,7 @@ public class FilmValidationTest {
                 .description("Описание фильма")
                 .releaseDate(LocalDate.of(2002, 2, 2))
                 .duration(100)
+                .mpa(new Mpa(1, "G"))
                 .build();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(1, violations.size());
@@ -55,6 +58,7 @@ public class FilmValidationTest {
                         "Т")
                 .releaseDate(LocalDate.of(2002, 2, 2))
                 .duration(100)
+                .mpa(new Mpa(1, "G"))
                 .build();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(1, violations.size());
@@ -69,6 +73,7 @@ public class FilmValidationTest {
                 .description("Описание фильма")
                 .releaseDate(LocalDate.of(1895, 12, 27))
                 .duration(100)
+                .mpa(new Mpa(1, "G"))
                 .build();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(1, violations.size());
@@ -84,6 +89,7 @@ public class FilmValidationTest {
                 .description("Описание фильма")
                 .releaseDate(LocalDate.of(1895, 12, 29))
                 .duration(-100)
+                .mpa(new Mpa(1, "G"))
                 .build();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(1, violations.size());
