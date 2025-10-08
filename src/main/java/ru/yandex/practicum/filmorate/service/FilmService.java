@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -10,30 +11,17 @@ import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.GenreStorage;
-import ru.yandex.practicum.filmorate.storage.MpaStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
     private final MpaStorage mpaStorage;
     private final GenreStorage genreStorage;
-
-    @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
-                       UserStorage userStorage, MpaStorage mpaStorage, GenreStorage genreStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-        this.mpaStorage = mpaStorage;
-        this.genreStorage = genreStorage;
-    }
-
+    private final LikeStorage likeStorage;
 
     public List<Film> findAllFilms() {
         return filmStorage.findAll();
@@ -53,20 +41,18 @@ public class FilmService {
     }
 
     public void addLike(int id, int userId) {
-        userStorage.findUserById(userId).orElseThrow(() -> new UserNotFoundException("Пользователь не найден."));
-        findFilmById(id).getLikes().add(userId);
+        likeStorage.addLike(id, userId);
     }
 
     public void removeLike(int id, int userId) {
-        userStorage.findUserById(userId).orElseThrow(() -> new UserNotFoundException("Пользователь не найден."));
-        findFilmById(id).getLikes().remove(userId);
+        if (userId < 0 || id < 0) {
+            throw new UserNotFoundException("Пользователь не найден.");
+        }
+        likeStorage.removeLike(id, userId);
     }
 
     public List<Film> findPopular(int count) {
-        return filmStorage.findAll().stream()
-                .sorted((o1, o2) -> Integer.compare(o2.getLikes().size(), o1.getLikes().size()))
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.findPopular(count);
     }
 
     public List<Mpa> findAllMpa() {
