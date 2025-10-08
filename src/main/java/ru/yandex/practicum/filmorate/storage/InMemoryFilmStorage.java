@@ -32,4 +32,14 @@ public class InMemoryFilmStorage implements FilmStorage {
     public Optional<Film> findFilmById(int id) {
         return Optional.ofNullable(films.get(id));
     }
+
+    @Override
+    public void addLike(int id, int userId) {
+
+    }
+
+    @Override
+    public void removeLike(int id, int userId) {
+
+    }
 }

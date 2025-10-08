@@ -20,9 +20,9 @@ public class FilmController {
     private final FilmService filmService;
 
     @GetMapping
-    public List<Film> findAll() {
+    public List<Film> findAllFilms() {
         log.info("GET / films");
-        return filmService.findAll();
+        return filmService.findAllFilms();
     }
 
     @GetMapping("/{id}")
