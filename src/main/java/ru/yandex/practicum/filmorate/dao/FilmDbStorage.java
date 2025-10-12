@@ -72,7 +72,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        if (mpaRatingExists(film.getMpa().getId())){
+        if (mpaRatingExists(film.getMpa().getId())) {
             throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
         }
 
@@ -96,7 +96,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        if (mpaRatingExists(film.getMpa().getId())){
+        if (mpaRatingExists(film.getMpa().getId())) {
             throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
         }
         int id = film.getId();
