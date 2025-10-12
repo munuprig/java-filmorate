@@ -21,7 +21,7 @@ public class FriendDbStorage implements FriendStorage {
 
     @Override
     public void addFriend(int userId, int friendId) {
-        if (!findFriendById(userId).isPresent() || !findFriendById(friendId).isPresent()) {
+        if (findFriendById(userId).isEmpty() || findFriendById(friendId).isEmpty()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
         String sql = "INSERT INTO friendship(user_id, friend_id) VALUES (?,?)";
@@ -30,7 +30,7 @@ public class FriendDbStorage implements FriendStorage {
 
     @Override
     public void removeFriend(int userId, int friendId) {
-        if (!findFriendById(userId).isPresent() || !findFriendById(friendId).isPresent()) {
+        if (findFriendById(userId).isEmpty() || findFriendById(friendId).isEmpty()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
         String sql = "DELETE FROM friendship WHERE user_id in (?, ?)";

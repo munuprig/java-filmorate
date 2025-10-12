@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -25,6 +26,7 @@ import java.util.Optional;
 @Repository
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final MpaDbStorage mpaDbStorage;
 
     private static final String SELECT_FILMS = "SELECT f.film_id, f.name, f.description, f.releaseDate, f.duration, " +
             "mpa.rating_id, mpa.name AS mpa_name " +
@@ -69,21 +71,24 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        String sqlQuery = "insert into FILMS (NAME, DESCRIPTION, RELEASE_DATE, DURATION, RATE, MPA_ID) values (?, ?, ?, ?, ?, ?)";
+        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()){
+            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
+        }
 
+        String sql = "INSERT INTO films (name, description, releaseDate, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"FILM_ID"});
-            stmt.setString(1, film.getName());
-            stmt.setString(2, film.getDescription());
-            stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
-            stmt.setLong(4, film.getDuration());
-            stmt.setLong(6, film.getMpa().getId());
-            return stmt;
-        }, keyHolder);
-        film.setId((int) keyHolder.getKey().longValue());
+        jdbcTemplate.update(
+                connection -> {
+                    PreparedStatement ps = connection.prepareStatement(sql, new String[]{"film_id"});
+                    ps.setString(1, film.getName());
+                    ps.setString(2, film.getDescription());
+                    ps.setDate(3, Date.valueOf(film.getReleaseDate()));
+                    ps.setInt(4, film.getDuration());
+                    ps.setInt(5, film.getMpa().getId());
+                    return ps;
+                }, keyHolder);
+        film.setId(keyHolder.getKey().intValue());
         updateGenres(film.getGenres(), film.getId());
-        film.setGenres(findGenresByFilm(film.getId()));
         return film;
     }
 
