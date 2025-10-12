@@ -33,7 +33,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User update(User user) {
-        if (!findUserById(user.getId()).isPresent()) {
+        if (findUserById(user.getId()).isEmpty()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";

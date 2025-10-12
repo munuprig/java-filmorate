@@ -17,10 +17,11 @@ import java.util.Optional;
 @Repository
 public class FriendDbStorage implements FriendStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final UserDbStorage userDbStorage;
 
     @Override
     public void addFriend(int userId, int friendId) {
-        if (!findFriendById(userId).isPresent() || !findFriendById(friendId).isPresent()) {
+        if (findFriendById(userId).isEmpty() || findFriendById(friendId).isEmpty()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
         String sql = "INSERT INTO friendship(user_id, friend_id) VALUES (?,?)";
@@ -29,15 +30,18 @@ public class FriendDbStorage implements FriendStorage {
 
     @Override
     public void removeFriend(int userId, int friendId) {
-        if (!findFriendById(userId).isPresent() || !findFriendById(friendId).isPresent()) {
+        if (findFriendById(userId).isEmpty() || findFriendById(friendId).isEmpty()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
-        String sql = "DELETE FROM friendship WHERE user_id in (?, ?) AND friend_id in (?, ?)";
+        String sql = "DELETE FROM friendship WHERE user_id in (?, ?)";
         jdbcTemplate.update(sql, userId, friendId, userId, friendId);
     }
 
     @Override
     public List<User> findFriends(int id) {
+        if (userDbStorage.findUserById(id).isEmpty()) {
+            throw new UserNotFoundException("Пользователь не найден.");
+        }
         String sql = "SELECT u.user_id, u.email, u.login, u.name, u.birthday " +
                 "FROM friendship AS f " +
                 "INNER JOIN users AS u ON u.user_id = f.friend_id " +

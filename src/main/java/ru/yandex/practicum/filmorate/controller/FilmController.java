@@ -31,24 +31,18 @@ public class FilmController {
         return filmService.findFilmById(id);
     }
 
-    @GetMapping("/popular")
-    public List<Film> findPopular(@RequestParam(defaultValue = "10") @Positive int count) {
-        log.info("GET / popular");
-        return filmService.findPopular(count);
-    }
-
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         log.info("POST / film / {}", film.getName());
         filmService.create(film);
-        return film;
+        return filmService.findFilmById(film.getId());
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
         log.info("PUT / film / {}", film.getName());
         filmService.update(film);
-        return film;
+        return filmService.findFilmById(film.getId());
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -61,5 +55,11 @@ public class FilmController {
     public void removeFilmLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
         log.info("DELETE / {} / like / {}", id, userId);
         filmService.removeLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> findPopular(@RequestParam(defaultValue = "10") @Positive int count) {
+        log.info("GET / popular");
+        return filmService.findPopular(count);
     }
 }

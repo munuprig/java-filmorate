@@ -44,14 +44,14 @@ public class UserController {
     public User create(@Valid @RequestBody User user) {
         log.info("POST / user / {}", user.getLogin());
         userService.create(user);
-        return user;
+        return userService.findUserById(user.getId());
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
         log.info("PUT / user / {}", user.getLogin());
         userService.update(user);
-        return user;
+        return userService.findUserById(user.getId());
     }
 
     @PutMapping("/{id}/friends/{friendId}")

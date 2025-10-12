@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FilmStorage {
-    List<Film> findAll();
+    List<Film> findAllFilms();
 
     List<Film> findPopular(int count);
 
@@ -18,5 +18,5 @@ public interface FilmStorage {
 
     Optional<Film> findFilmById(int id);
 
-    LinkedHashSet<Genre> findGenresByFilm(int id);
+    void findAllGenresByFilm(List<Film> films);
 }

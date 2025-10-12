@@ -18,11 +18,10 @@ import java.util.List;
 public class FilmService {
     private final FilmStorage filmStorage;
     private final MpaStorage mpaStorage;
-    private final GenreStorage genreStorage;
     private final LikeStorage likeStorage;
 
     public List<Film> findAllFilms() {
-        return filmStorage.findAll();
+        return filmStorage.findAllFilms();
     }
 
     public Film create(Film film) {
@@ -59,13 +58,5 @@ public class FilmService {
 
     public Mpa findMpaById(int id) {
         return mpaStorage.findMpaById(id).orElseThrow(() -> new MpaNotFoundException("Рейтинг MPA не найден."));
-    }
-
-    public List<Genre> findGenres() {
-        return genreStorage.findGenres();
-    }
-
-    public Genre getGenreById(int id) {
-        return genreStorage.findGenreById(id).orElseThrow(() -> new GenreNotFoundException("Жанр не найден."));
     }
 }
