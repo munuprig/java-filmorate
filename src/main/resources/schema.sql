@@ -54,9 +54,9 @@ name varchar(255)
 );
 
 create table if not exists film_genres(
-id int auto_increment,
 film_id int,
 genre_id int,
+PRIMARY KEY(film_id, genre_id),
 FOREIGN KEY(film_id) REFERENCES films(film_id),
 FOREIGN KEY(genre_id) REFERENCES genres(genre_id)
 );
