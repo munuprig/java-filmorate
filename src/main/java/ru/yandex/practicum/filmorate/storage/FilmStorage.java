@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,5 +18,5 @@ public interface FilmStorage {
 
     Optional<Film> findFilmById(int id);
 
-    void findAllGenresByFilm(List<Film> films);
+    LinkedHashSet<Genre> findGenresByFilm(int id);
 }

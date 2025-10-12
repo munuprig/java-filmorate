@@ -33,7 +33,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User update(User user) {
-        if (findUserById(user.getId()).isEmpty()) {
+        if (!findUserById(user.getId()).isPresent()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
@@ -46,7 +46,13 @@ public class UserDbStorage implements UserStorage {
         String sql = "select * from users where user_id = ?";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql, id);
         if (userRows.next()) {
-            User user = User.builder().id(userRows.getInt("user_id")).email(userRows.getString("email")).login(userRows.getString("login")).name(userRows.getString("name")).birthday(userRows.getDate("birthday").toLocalDate()).build();
+            User user = User.builder()
+                    .id(userRows.getInt("user_id"))
+                    .email(userRows.getString("email"))
+                    .login(userRows.getString("login"))
+                    .name(userRows.getString("name"))
+                    .birthday(userRows.getDate("birthday").toLocalDate())
+                    .build();
             return Optional.of(user);
         } else {
             return Optional.empty();
@@ -60,6 +66,12 @@ public class UserDbStorage implements UserStorage {
     }
 
     private User makeUser(ResultSet rs) throws SQLException {
-        return User.builder().id(rs.getInt("user_id")).email(rs.getString("email")).login(rs.getString("login")).name(rs.getString("name")).birthday(rs.getDate("birthday").toLocalDate()).build();
+        return User.builder()
+                .id(rs.getInt("user_id"))
+                .email(rs.getString("email"))
+                .login(rs.getString("login"))
+                .name(rs.getString("name"))
+                .birthday(rs.getDate("birthday").toLocalDate())
+                .build();
     }
 }

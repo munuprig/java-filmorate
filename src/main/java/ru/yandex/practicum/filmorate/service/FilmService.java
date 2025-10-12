@@ -68,7 +68,7 @@ public class FilmService {
     }
 
     public List<Genre> findAllGenres() {
-        return genreStorage.findAllGenres();
+        return genreStorage.findGenres();
     }
 
     public Genre findGenreById(int id) {
