@@ -72,7 +72,7 @@ public class FilmDbStorage implements FilmStorage {
         if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()) {
             throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
         }
-        for (Genre genre : film.getGenres()){
+        for (Genre genre : film.getGenres()) {
             if (genreDbStorage.findGenreById(genre.getId()).isEmpty()) {
                 throw new MpaNotFoundException("Жанр не найден.");
             }
@@ -100,7 +100,7 @@ public class FilmDbStorage implements FilmStorage {
         if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()) {
             throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
         }
-        for (Genre genre : film.getGenres()){
+        for (Genre genre : film.getGenres()) {
             if (genreDbStorage.findGenreById(genre.getId()).isEmpty()) {
                 throw new MpaNotFoundException("Жанр не найден.");
             }

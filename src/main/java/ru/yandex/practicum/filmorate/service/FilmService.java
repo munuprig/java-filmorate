@@ -3,12 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.GenreNotFoundException;
-import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.List;
@@ -17,8 +13,6 @@ import java.util.List;
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
-    private final MpaStorage mpaStorage;
-    private final GenreStorage genreStorage;
     private final LikeStorage likeStorage;
     private final UserStorage userStorage;
 
@@ -57,21 +51,5 @@ public class FilmService {
 
     public List<Film> findPopular(int count) {
         return filmStorage.findPopular(count);
-    }
-
-    public List<Mpa> findAllMpa() {
-        return mpaStorage.findAllMpa();
-    }
-
-    public Mpa findMpaById(int id) {
-        return mpaStorage.findMpaById(id).orElseThrow(() -> new MpaNotFoundException("Рейтинг MPA не найден."));
-    }
-
-    public List<Genre> findAllGenres() {
-        return genreStorage.findGenres();
-    }
-
-    public Genre findGenreById(int id) {
-        return genreStorage.findGenreById(id).orElseThrow(() -> new GenreNotFoundException("Жанр не найден."));
     }
 }
