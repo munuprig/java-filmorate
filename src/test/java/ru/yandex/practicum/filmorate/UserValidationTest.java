@@ -15,7 +15,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(classes = FilmorateApplication.class)
 class UserValidationTest {
     private User user;
     private static Validator validator;
