@@ -37,8 +37,7 @@ name varchar(255) NOT NULL,
 description varchar(200) NOT NULL,
 releaseDate date NOT NULL,
 duration int,
-rating_id int,
-FOREIGN KEY(rating_id) REFERENCES mpa_rating(rating_id)
+rating_id int
 );
 
 create table if not exists likes(
@@ -55,10 +54,9 @@ name varchar(255)
 );
 
 create table if not exists film_genres(
-PRIMARY KEY(film_id, genre_id),
+id int auto_increment,
 film_id int,
 genre_id int,
 FOREIGN KEY(film_id) REFERENCES films(film_id),
 FOREIGN KEY(genre_id) REFERENCES genres(genre_id)
 );
-
