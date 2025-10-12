@@ -37,7 +37,7 @@ name varchar(255) NOT NULL,
 description varchar(200) NOT NULL,
 releaseDate date NOT NULL,
 duration int,
-rating_id INT REFERENCES mpa_rating(rating_id)
+rating_id int
 );
 
 create table if not exists likes(
