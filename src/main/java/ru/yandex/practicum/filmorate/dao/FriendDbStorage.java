@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.GenreNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FriendStorage;
@@ -32,12 +33,14 @@ public class FriendDbStorage implements FriendStorage {
         if (!findFriendById(userId).isPresent() || !findFriendById(friendId).isPresent()) {
             throw new UserNotFoundException("Пользователь не найден.");
         }
-        String sql = "DELETE FROM friendship WHERE user_id in (?, ?) AND friend_id in (?, ?)";
+        String sql = "DELETE FROM friendship WHERE user_id in (?, ?)";
         jdbcTemplate.update(sql, userId, friendId, userId, friendId);
     }
 
     @Override
     public List<User> findFriends(int id) {
+        findFriendById(id).orElseThrow(() -> new GenreNotFoundException("Пользователь не найден."));
+
         String sql = "SELECT u.user_id, u.email, u.login, u.name, u.birthday " +
                 "FROM friendship AS f " +
                 "INNER JOIN users AS u ON u.user_id = f.friend_id " +
