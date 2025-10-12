@@ -6,11 +6,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.controller.GenreController;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.GenreNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.sql.Date;
@@ -26,7 +27,7 @@ import java.util.Optional;
 @Repository
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
-    private final GenreController genreController;
+    private final FilmService filmService;
 
     private static final String SELECT_FILMS = "SELECT f.film_id, f.name, f.description, f.releaseDate, f.duration, " +
             "mpa.rating_id, mpa.name AS mpa_name " +
@@ -71,9 +72,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-//        if (mpaRatingExists(film.getMpa().getId())) {
-//            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
-//        }
 
         String sql = "INSERT INTO films (name, description, releaseDate, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -89,15 +87,12 @@ public class FilmDbStorage implements FilmStorage {
                 }, keyHolder);
         film.setId(keyHolder.getKey().intValue());
         updateGenres(film.getGenres(), film.getId());
-        film.setGenres(findGenresByFilm(film.getId()));
         return film;
     }
 
     @Override
     public Film update(Film film) {
-//        if (mpaRatingExists(film.getMpa().getId())) {
-//            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
-//        }
+//        genreDbStorage.findGenreById(film.getId()).orElseThrow(() -> new GenreNotFoundException("Жанр не найден."));
         int id = film.getId();
         if (!findFilmById(id).isPresent()) {
             throw new FilmNotFoundException("Фильм не найден.");
@@ -121,12 +116,6 @@ public class FilmDbStorage implements FilmStorage {
                     new BatchPreparedStatementSetter() {
                         @Override
                         public void setValues(PreparedStatement ps, int i) throws SQLException {
-//                            Genre currentGenre = g.get(i);
-//
-//                            // Проверьте существование текущего жанра
-//                            if (!genreExists(currentGenre.getId())) {
-//                                throw new IllegalArgumentException("Жанр с ID=" + currentGenre.getId() + " не найден.");
-//                            }
                             ps.setInt(1, id);
                             ps.setInt(2, g.get(i).getId());
                         }
@@ -150,16 +139,4 @@ public class FilmDbStorage implements FilmStorage {
                 rs.getString("name")), id));
         return genres;
     }
-//
-//    private boolean genreExists(int genreId) {
-//        final String sqlCheckGenre = "SELECT COUNT(*) FROM genres WHERE genre_id = ?";
-//        int count = jdbcTemplate.queryForObject(sqlCheckGenre, Integer.class, genreId);
-//        return count > 0;
-//    }
-//
-//    private boolean mpaRatingExists(int mpaId) {
-//        final String sqlCheckMPA = "SELECT COUNT(*) FROM ratings WHERE rating_id = ?";
-//        int count = jdbcTemplate.queryForObject(sqlCheckMPA, Integer.class, mpaId);
-//        return count > 0;
-//    }
 }
