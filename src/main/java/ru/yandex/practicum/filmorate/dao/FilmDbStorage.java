@@ -3,7 +3,8 @@ package ru.yandex.practicum.filmorate.dao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
@@ -12,19 +13,18 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Repository
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
     private final MpaDbStorage mpaDbStorage;
+    private final GenreDbStorage genreDbStorage;
 
     private static final String SELECT_FILMS = "SELECT f.film_id, f.name, f.description, f.releaseDate, f.duration, " +
             "mpa.rating_id, mpa.name AS mpa_name " +
@@ -72,22 +72,39 @@ public class FilmDbStorage implements FilmStorage {
         if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()) {
             throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
         }
-
-        String sql = "INSERT INTO films (name, description, releaseDate, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
-        jdbcTemplate.update(sql, film.getName(), film.getDescription(),
-                film.getReleaseDate(), film.getDuration(), film.getMpa().getId());
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet("select * from films where name = ?", film.getName());
-        if (filmRows.next()) {
-            film.setId(filmRows.getInt("film_id"));
+        for (Genre genre : film.getGenres()){
+            if (genreDbStorage.findGenreById(genre.getId()).isEmpty()) {
+                throw new MpaNotFoundException("Жанр не найден.");
+            }
         }
-        updateGenres(film.getGenres(), film.getId());
+
+        String sqlQuery = "insert into FILMS (NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_ID, GENRES) values (?, ?, ?, ?, ?, ?)";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"FILM_ID"});
+            stmt.setString(1, film.getName());
+            stmt.setString(2, film.getDescription());
+            stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
+            stmt.setLong(4, film.getDuration());
+            stmt.setLong(5, film.getMpa().getId());
+            return stmt;
+        }, keyHolder);
+        film.setId(Objects.requireNonNull(keyHolder.getKey()).intValue());
         film.setGenres(findGenresByFilm(film.getId()));
         return film;
     }
 
     @Override
     public Film update(Film film) {
-        //genreDbStorage.findGenreById(film.getId()).orElseThrow(() -> new GenreNotFoundException("Жанр не найден."));
+        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()) {
+            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
+        }
+        for (Genre genre : film.getGenres()){
+            if (genreDbStorage.findGenreById(genre.getId()).isEmpty()) {
+                throw new MpaNotFoundException("Жанр не найден.");
+            }
+        }
         int id = film.getId();
         if (!findFilmById(id).isPresent()) {
             throw new FilmNotFoundException("Фильм не найден.");
