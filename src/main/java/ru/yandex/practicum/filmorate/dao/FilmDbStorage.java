@@ -32,7 +32,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty() ) {
+        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()) {
             throw new MpaNotFoundException("Такого жанра нету.");
         }
         String sql = "INSERT INTO films (name, description, releaseDate, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
@@ -54,7 +54,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty() ) {
+        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()) {
             throw new MpaNotFoundException("Такого жанра нету.");
         }
         int id = film.getId();
