@@ -39,7 +39,9 @@ public class FriendDbStorage implements FriendStorage {
 
     @Override
     public List<User> findFriends(int id) {
-        findFriendById(id).orElseThrow(() -> new GenreNotFoundException("Пользователь не найден."));
+        if (findFriendById(id).isEmpty()) {
+            throw new UserNotFoundException("Пользователь не найден.");
+        }
 
         String sql = "SELECT u.user_id, u.email, u.login, u.name, u.birthday " +
                 "FROM friendship AS f " +
