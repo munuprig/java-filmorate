@@ -69,7 +69,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()){
+        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()) {
             throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
         }
 
