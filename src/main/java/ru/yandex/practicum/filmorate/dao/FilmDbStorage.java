@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
@@ -76,19 +77,14 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         String sql = "INSERT INTO films (name, description, releaseDate, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(
-                connection -> {
-                    PreparedStatement ps = connection.prepareStatement(sql, new String[]{"film_id"});
-                    ps.setString(1, film.getName());
-                    ps.setString(2, film.getDescription());
-                    ps.setDate(3, Date.valueOf(film.getReleaseDate()));
-                    ps.setInt(4, film.getDuration());
-                    ps.setInt(5, film.getMpa().getId());
-                    return ps;
-                }, keyHolder);
-        film.setId(keyHolder.getKey().intValue());
+        jdbcTemplate.update(sql, film.getName(), film.getDescription(),
+                film.getReleaseDate(), film.getDuration(), film.getMpa().getId());
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet("select * from films where name = ?", film.getName());
+        if (filmRows.next()) {
+            film.setId(filmRows.getInt("film_id"));
+        }
         updateGenres(film.getGenres(), film.getId());
+        film.setGenres(findGenresByFilm(film.getId()));
         return film;
     }
 
