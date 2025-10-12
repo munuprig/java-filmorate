@@ -69,7 +69,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        genreDbStorage.findGenreById(film.getId()).orElseThrow(() -> new GenreNotFoundException("Жанр не найден."));
+        //genreDbStorage.findGenreById(film.getId()).orElseThrow(() -> new GenreNotFoundException("Жанр не найден."));
 
         String sql = "INSERT INTO films (name, description, releaseDate, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql, film.getName(), film.getDescription(),
@@ -85,7 +85,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        genreDbStorage.findGenreById(film.getId()).orElseThrow(() -> new GenreNotFoundException("Жанр не найден."));
+        //genreDbStorage.findGenreById(film.getId()).orElseThrow(() -> new GenreNotFoundException("Жанр не найден."));
         int id = film.getId();
         if (!findFilmById(id).isPresent()) {
             throw new FilmNotFoundException("Фильм не найден.");
