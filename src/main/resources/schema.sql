@@ -37,6 +37,7 @@ name varchar(255) NOT NULL,
 description varchar(200) NOT NULL,
 releaseDate date NOT NULL,
 duration int,
+rating_id int,
 FOREIGN KEY(rating_id) REFERENCES mpa_rating(rating_id)
 );
 
