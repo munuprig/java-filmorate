@@ -72,9 +72,9 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        if (mpaRatingExists(film.getMpa().getId())) {
-            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
-        }
+//        if (mpaRatingExists(film.getMpa().getId())) {
+//            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
+//        }
 
         String sql = "INSERT INTO films (name, description, releaseDate, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -96,9 +96,9 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        if (mpaRatingExists(film.getMpa().getId())) {
-            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
-        }
+//        if (mpaRatingExists(film.getMpa().getId())) {
+//            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
+//        }
         int id = film.getId();
         if (!findFilmById(id).isPresent()) {
             throw new FilmNotFoundException("Фильм не найден.");
@@ -122,12 +122,12 @@ public class FilmDbStorage implements FilmStorage {
                     new BatchPreparedStatementSetter() {
                         @Override
                         public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            Genre currentGenre = g.get(i);
-
-                            // Проверьте существование текущего жанра
-                            if (!genreExists(currentGenre.getId())) {
-                                throw new IllegalArgumentException("Жанр с ID=" + currentGenre.getId() + " не найден.");
-                            }
+//                            Genre currentGenre = g.get(i);
+//
+//                            // Проверьте существование текущего жанра
+//                            if (!genreExists(currentGenre.getId())) {
+//                                throw new IllegalArgumentException("Жанр с ID=" + currentGenre.getId() + " не найден.");
+//                            }
                             ps.setInt(1, id);
                             ps.setInt(2, g.get(i).getId());
                         }
@@ -151,16 +151,16 @@ public class FilmDbStorage implements FilmStorage {
                 rs.getString("name")), id));
         return genres;
     }
-
-    private boolean genreExists(int genreId) {
-        final String sqlCheckGenre = "SELECT COUNT(*) FROM genres WHERE genre_id = ?";
-        int count = jdbcTemplate.queryForObject(sqlCheckGenre, Integer.class, genreId);
-        return count > 0;
-    }
-
-    private boolean mpaRatingExists(int mpaId) {
-        final String sqlCheckMPA = "SELECT COUNT(*) FROM ratings WHERE rating_id = ?";
-        int count = jdbcTemplate.queryForObject(sqlCheckMPA, Integer.class, mpaId);
-        return count > 0;
-    }
+//
+//    private boolean genreExists(int genreId) {
+//        final String sqlCheckGenre = "SELECT COUNT(*) FROM genres WHERE genre_id = ?";
+//        int count = jdbcTemplate.queryForObject(sqlCheckGenre, Integer.class, genreId);
+//        return count > 0;
+//    }
+//
+//    private boolean mpaRatingExists(int mpaId) {
+//        final String sqlCheckMPA = "SELECT COUNT(*) FROM ratings WHERE rating_id = ?";
+//        int count = jdbcTemplate.queryForObject(sqlCheckMPA, Integer.class, mpaId);
+//        return count > 0;
+//    }
 }
