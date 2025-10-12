@@ -68,10 +68,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        if (!mpaRatingExists(film.getMpa().getId())) {
-            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
-        }
-
         String sql = "INSERT INTO films (name, description, releaseDate, duration, rating_id) VALUES (?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql, film.getName(), film.getDescription(),
                 film.getReleaseDate(), film.getDuration(), film.getMpa().getId());
@@ -132,11 +128,5 @@ public class FilmDbStorage implements FilmStorage {
         genres.addAll(jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(rs.getInt("genre_id"),
                 rs.getString("name")), id));
         return genres;
-    }
-
-    private boolean mpaRatingExists(int mpaId) {
-        final String sqlCheckMPA = "SELECT COUNT(*) FROM ratings WHERE rating_id = ?";
-        int count = jdbcTemplate.queryForObject(sqlCheckMPA, Integer.class, mpaId);
-        return count > 0;
     }
 }
