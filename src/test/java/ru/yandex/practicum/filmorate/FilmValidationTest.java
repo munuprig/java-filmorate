@@ -15,7 +15,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(classes = FilmorateApplication.class)
 class FilmValidationTest {
     private Film film;
     private static Validator validator;
