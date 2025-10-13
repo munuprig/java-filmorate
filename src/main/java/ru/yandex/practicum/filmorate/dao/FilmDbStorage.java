@@ -13,8 +13,10 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
-import java.sql.*;
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -53,12 +55,15 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {
-        Integer id = rs.getInt("film_id");
+        int id = rs.getInt("film_id");
+        LocalDate releaseDate = rs.getDate("releaseDate") != null && !rs.wasNull() ?
+                rs.getDate("releaseDate").toLocalDate() : null;
+
         Film film = Film.builder()
                 .id(id)
                 .name(rs.getString("name"))
                 .description(rs.getString("description"))
-                .releaseDate(rs.getDate("releaseDate").toLocalDate())
+                .releaseDate(releaseDate)
                 .duration(rs.getInt("duration"))
                 .mpa(new Mpa(rs.getInt("rating_id"), rs.getString("mpa_name")))
                 .build();
@@ -85,12 +90,7 @@ public class FilmDbStorage implements FilmStorage {
             PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"FILM_ID"});
             stmt.setString(1, film.getName());
             stmt.setString(2, film.getDescription());
-            final LocalDate releaseDate = film.getReleaseDate();
-            if (releaseDate == null) {
-                stmt.setNull(3, Types.DATE);
-            } else {
-                stmt.setDate(3, Date.valueOf(releaseDate));
-            }
+            stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
             stmt.setLong(4, film.getDuration());
             stmt.setLong(5, film.getMpa().getId());
             return stmt;
@@ -157,7 +157,6 @@ public class FilmDbStorage implements FilmStorage {
                 rs.getString("name")), id));
         return genres;
     }
-
     private void saveGenres(Film film) {
         final int filmId = film.getId();
         jdbcTemplate.update("delete from FILM_GENRES where FILM_ID = ?", filmId);

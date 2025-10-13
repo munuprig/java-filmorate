@@ -56,16 +56,21 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> findUserById(int id) {
-        String sql = "select * from users where user_id = ?";
+        String sql = "SELECT * FROM users WHERE user_id = ?";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql, id);
+
         if (userRows.next()) {
+            LocalDate birthday = userRows.getDate("birthday") != null && !userRows.wasNull() ?
+                    userRows.getDate("birthday").toLocalDate() : null;
+
             User user = User.builder()
                     .id(userRows.getInt("user_id"))
                     .email(userRows.getString("email"))
                     .login(userRows.getString("login"))
                     .name(userRows.getString("name"))
-                    .birthday(userRows.getDate("birthday").toLocalDate())
+                    .birthday(birthday)
                     .build();
+
             return Optional.of(user);
         } else {
             return Optional.empty();
