@@ -73,14 +73,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film create(Film film) {
-        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()) {
-            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
-        }
-        for (Genre genre : film.getGenres()) {
-            if (genreDbStorage.findGenreById(genre.getId()).isEmpty()) {
-                throw new MpaNotFoundException("Жанр не найден.");
-            }
-        }
         saveGenres(film);
 
         String sqlQuery = "insert into FILMS (name, description, releaseDate, duration, rating_id) values (?, ?, ?, ?, ?)";
