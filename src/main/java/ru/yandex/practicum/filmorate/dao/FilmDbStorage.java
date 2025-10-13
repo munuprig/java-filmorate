@@ -13,10 +13,9 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
+import java.sql.*;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -77,15 +76,21 @@ public class FilmDbStorage implements FilmStorage {
                 throw new MpaNotFoundException("Жанр не найден.");
             }
         }
+        saveGenres(film);
 
-        String sqlQuery = "insert into FILMS (NAME, DESCRIPTION, RELEASE_DATE, DURATION, MPA_ID, GENRES) values (?, ?, ?, ?, ?, ?)";
+        String sqlQuery = "insert into FILMS (name, description, releaseDate, duration, rating_id) values (?, ?, ?, ?, ?)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"FILM_ID"});
             stmt.setString(1, film.getName());
             stmt.setString(2, film.getDescription());
-            stmt.setDate(3, Date.valueOf(film.getReleaseDate()));
+            final LocalDate releaseDate = film.getReleaseDate();
+            if (releaseDate == null) {
+                stmt.setNull(3, Types.DATE);
+            } else {
+                stmt.setDate(3, Date.valueOf(releaseDate));
+            }
             stmt.setLong(4, film.getDuration());
             stmt.setLong(5, film.getMpa().getId());
             return stmt;
@@ -106,9 +111,10 @@ public class FilmDbStorage implements FilmStorage {
             }
         }
         int id = film.getId();
-        if (!findFilmById(id).isPresent()) {
+        if (findFilmById(id).isEmpty()) {
             throw new FilmNotFoundException("Фильм не найден.");
         }
+        saveGenres(film);
         String sql = "UPDATE films SET name = ?, description = ?, releaseDate = ?, duration = ?, rating_id = ? " +
                 "WHERE film_id = ?";
         jdbcTemplate.update(sql, film.getName(), film.getDescription(), film.getReleaseDate(), film.getDuration(),
@@ -151,4 +157,26 @@ public class FilmDbStorage implements FilmStorage {
                 rs.getString("name")), id));
         return genres;
     }
+    private void saveGenres(Film film) {
+        final int filmId = film.getId();
+        jdbcTemplate.update("delete from FILM_GENRES where FILM_ID = ?", filmId);
+        final Set<Genre> genres = film.getGenres();
+        if (genres == null || genres.isEmpty()) {
+            return;
+        }
+        final ArrayList<Genre> genreList = new ArrayList<>(genres);
+        jdbcTemplate.batchUpdate(
+                "insert into FILM_GENRES (FILM_ID, GENRE_ID) values (?, ?)",
+                new BatchPreparedStatementSetter() {
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setLong(1, filmId);
+                        ps.setLong(2, genreList.get(i).getId());
+                    }
+
+                    public int getBatchSize() {
+                        return genreList.size();
+                    }
+                });
+    }
+
 }

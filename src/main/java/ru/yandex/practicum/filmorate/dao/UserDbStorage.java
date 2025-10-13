@@ -3,14 +3,16 @@ package ru.yandex.practicum.filmorate.dao;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,12 +24,23 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User create(User user) {
-        String sql = "insert into users (email, login, name, birthday) values (?, ?, ?, ?)";
-        jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday());
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from users where login = ?", user.getLogin());
-        if (userRows.next()) {
-            user.setId(userRows.getInt("user_id"));
-        }
+        String sqlQuery = "insert into USERS (EMAIL, LOGIN, NAME, BIRTHDAY) values (?, ?, ?, ?)";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"USER_ID"});
+            stmt.setString(1, user.getEmail());
+            stmt.setString(2, user.getLogin());
+            stmt.setString(3, user.getName());
+            final LocalDate birthday = user.getBirthday();
+            if (birthday == null) {
+                stmt.setNull(4, Types.DATE);
+            } else {
+                stmt.setDate(4, Date.valueOf(birthday));
+            }
+            return stmt;
+        }, keyHolder);
+        user.setId(keyHolder.getKey().intValue());
         return user;
     }
 
