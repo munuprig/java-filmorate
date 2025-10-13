@@ -7,7 +7,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.MpaNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -27,10 +26,11 @@ public class FilmDbStorage implements FilmStorage {
     private final MpaDbStorage mpaDbStorage;
     private final GenreDbStorage genreDbStorage;
 
-    private static final String SELECT_FILMS = "SELECT f.film_id, f.name, f.description, f.releaseDate, f.duration, " +
+    private static final String SELECT_FILMS =
+            "SELECT f.film_id, f.name, f.description, f.releaseDate, f.duration, " +
             "mpa.rating_id, mpa.name AS mpa_name " +
             "FROM films AS f " +
-            "INNER JOIN mpa_rating AS mpa ON f.rating_id = mpa.rating_id ";
+            "INNER JOIN mpa_rating AS mpa ON f.rating_id = mpa.rating_id";
 
     @Override
     public List<Film> findAllFilms() {
@@ -95,14 +95,6 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        if (mpaDbStorage.findMpaById(film.getMpa().getId()).isEmpty()) {
-            throw new MpaNotFoundException("Рейтинг MPAA с указанным ID не найден.");
-        }
-        for (Genre genre : film.getGenres()) {
-            if (genreDbStorage.findGenreById(genre.getId()).isEmpty()) {
-                throw new MpaNotFoundException("Жанр не найден.");
-            }
-        }
         int id = film.getId();
         if (findFilmById(id).isEmpty()) {
             throw new FilmNotFoundException("Фильм не найден.");
@@ -161,11 +153,13 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.batchUpdate(
                 "insert into FILM_GENRES (FILM_ID, GENRE_ID) values (?, ?)",
                 new BatchPreparedStatementSetter() {
+                    @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
                         ps.setLong(1, filmId);
                         ps.setLong(2, genreList.get(i).getId());
                     }
 
+                    @Override
                     public int getBatchSize() {
                         return genreList.size();
                     }
