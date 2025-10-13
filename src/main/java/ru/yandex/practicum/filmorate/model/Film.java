@@ -24,7 +24,6 @@ public class Film {
     @Size(max = 200, message = "Слишком длинное описание.")
     private String description;
 
-    @NotNull
     @ReleaseDate(value = "1895-12-28", message = "Введите дату релиза не ранее 28 декабря 1895 года.")
     private LocalDate releaseDate;
 

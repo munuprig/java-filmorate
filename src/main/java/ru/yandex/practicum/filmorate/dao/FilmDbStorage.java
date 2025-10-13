@@ -42,7 +42,8 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Optional<Film> findFilmById(int id) {
         String sql = "WHERE f.film_id = ?";
-        return jdbcTemplate.query(SELECT_FILMS + sql, (rs, rowNum) -> makeFilm(rs), id).stream().findFirst();
+        return jdbcTemplate.query(SELECT_FILMS + sql,
+                (rs, rowNum) -> makeFilm(rs), id).stream().findFirst();
     }
 
     @Override
@@ -144,10 +145,9 @@ public class FilmDbStorage implements FilmStorage {
                 "INNER JOIN genres ON genres.genre_id = fg.genre_id " +
                 "WHERE fg.film_id = ? " +
                 "ORDER BY fg.genre_id ASC";
-        LinkedHashSet<Genre> genres = new LinkedHashSet<>();
-        genres.addAll(jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(rs.getInt("genre_id"),
+        return new LinkedHashSet<>(jdbcTemplate.query(sql,
+                (rs, rowNum) -> new Genre(rs.getInt("genre_id"),
                 rs.getString("name")), id));
-        return genres;
     }
 
     private void saveGenres(Film film) {
