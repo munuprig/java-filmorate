@@ -157,6 +157,7 @@ public class FilmDbStorage implements FilmStorage {
                 rs.getString("name")), id));
         return genres;
     }
+
     private void saveGenres(Film film) {
         final int filmId = film.getId();
         jdbcTemplate.update("delete from FILM_GENRES where FILM_ID = ?", filmId);
