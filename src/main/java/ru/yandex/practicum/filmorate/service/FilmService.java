@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.IsEmptyException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -24,6 +25,8 @@ public class FilmService {
     public Film createFilm(Film film) {
         if (mpaService.findMpaById(film.getMpa().getId()) == null) {
             throw new ValidationException("Указанный MPA  не найден");
+        } else if (film.getName().isEmpty()){
+            throw new IsEmptyException("Имя не указано");
         }
         if (film.getGenres() != null) {
             genreStorage.checkGenresExists(film.getGenres());
@@ -36,6 +39,8 @@ public class FilmService {
         if (film.getId() == null) {
             log.info("Id должен быть указан");
             throw new NullPointerException("Id должен быть указан");
+        } else if (film.getName().isEmpty()){
+            throw new IsEmptyException("Имя не указано");
         }
         if (filmStorage.findFilmById(film.getId()) != null) {
             return filmStorage.updateFilm(film);
