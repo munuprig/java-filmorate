@@ -17,7 +17,12 @@ public class MpaService {
         return mpaStorage.findAllMpa();
     }
 
-    public Mpa findMpaById(int id) {
-        return mpaStorage.findMpaById(id).orElseThrow(() -> new MpaNotFoundException("Рейтинг MPA не найден."));
+    public Mpa findMpaById(Long id) {
+
+        if (mpaStorage.findMpaById(id) == null) {
+            throw new MpaNotFoundException("Рейтинга с таким id = " + id + " нет");
+        } else {
+            return mpaStorage.findMpaById(id);
+        }
     }
 }

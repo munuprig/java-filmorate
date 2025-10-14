@@ -1,22 +1,19 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 
 public interface FilmStorage {
     List<Film> findAllFilms();
 
-    List<Film> findPopular(int count);
+    List<Film> findPopular(Long count);
 
-    Film create(Film film);
+    Film createFilm(Film film);
 
-    Film update(Film film);
+    Film updateFilm(Film film);
 
-    Optional<Film> findFilmById(int id);
+    Film findFilmById(Long id);
 
-    LinkedHashSet<Genre> findGenresByFilm(int id);
+    boolean checkLikeOnFilm(Long filmId, Long userId);
 }

@@ -23,19 +23,19 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User findUserById(@PathVariable("id") int id) {
+    public User findUserById(@PathVariable("id") Long id) {
         log.info("GET / users / {}", id);
         return userService.findUserById(id);
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> findAllFriends(@PathVariable("id") int id) {
+    public List<User> findAllFriends(@PathVariable("id") Long id) {
         log.info("GET / {} / friends", id);
         return userService.findFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> findCommonFriends(@PathVariable("id") int id, @PathVariable("otherId") int otherId) {
+    public List<User> findCommonFriends(@PathVariable("id") Long id, @PathVariable("otherId") Long otherId) {
         log.info("GET / {} / friends / common / {}", id, otherId);
         return userService.findCommonFriends(id, otherId);
     }
@@ -43,25 +43,25 @@ public class UserController {
     @PostMapping
     public User create(@Valid @RequestBody User user) {
         log.info("POST / user / {}", user.getLogin());
-        userService.create(user);
+        userService.createUser(user);
         return userService.findUserById(user.getId());
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
         log.info("PUT / user / {}", user.getLogin());
-        userService.update(user);
+        userService.updateUser(user);
         return userService.findUserById(user.getId());
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend(@PathVariable("id") int id, @PathVariable("friendId") int friendId) {
+    public void addFriend(@PathVariable("id") Long id, @PathVariable("friendId") Long friendId) {
         log.info("PUT / {} / friends / {}", id, friendId);
         userService.addFriend(id, friendId);
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void removeFriend(@PathVariable("id") int id, @PathVariable("friendId") int friendId) {
+    public void removeFriend(@PathVariable("id") Long id, @PathVariable("friendId") Long friendId) {
         log.info("PUT / {} / friends / {}", id, friendId);
         userService.removeFriend(id, friendId);
     }

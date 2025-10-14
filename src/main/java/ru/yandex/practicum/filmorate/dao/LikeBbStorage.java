@@ -11,15 +11,13 @@ public class LikeBbStorage implements LikeStorage {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public void addLike(int id, int userId) {
-        removeLike(id, userId);
-        String sql = "INSERT INTO likes (film_id, user_id) VALUES (?, ?)";
-        jdbcTemplate.update(sql, id, userId);
+    public void addLike(Long id, Long userId) {
+        jdbcTemplate.update("INSERT INTO likes (film_id, user_id)values (?, ?);", id, userId);
     }
 
     @Override
-    public void removeLike(int id, int userId) {
-        String sql = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
-        jdbcTemplate.update(sql, id, userId);
+    public void removeLike(Long id, Long userId) {
+        jdbcTemplate.update("DELETE FROM likes WHERE film_id = ? AND user_id = ?;", id, userId);
+
     }
 }

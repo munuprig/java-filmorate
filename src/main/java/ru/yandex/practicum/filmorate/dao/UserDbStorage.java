@@ -1,95 +1,92 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
+import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.sql.*;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.sql.Date;
+import java.util.*;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Primary
+@Slf4j
 @Repository
 public class UserDbStorage implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
-
-    @Override
-    public User create(User user) {
-        String sqlQuery = "insert into USERS (EMAIL, LOGIN, NAME, BIRTHDAY) values (?, ?, ?, ?)";
-
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"USER_ID"});
-            stmt.setString(1, user.getEmail());
-            stmt.setString(2, user.getLogin());
-            stmt.setString(3, user.getName());
-            final LocalDate birthday = user.getBirthday();
-            if (birthday == null) {
-                stmt.setNull(4, Types.DATE);
-            } else {
-                stmt.setDate(4, Date.valueOf(birthday));
-            }
-            return stmt;
-        }, keyHolder);
-        user.setId(keyHolder.getKey().intValue());
-        return user;
-    }
-
-    @Override
-    public User update(User user) {
-        if (findUserById(user.getId()).isEmpty()) {
-            throw new UserNotFoundException("Пользователь не найден.");
-        }
-        String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE user_id = ?";
-        jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
-        return user;
-    }
-
-    @Override
-    public Optional<User> findUserById(int id) {
-        String sql = "SELECT * FROM users WHERE user_id = ?";
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql, id);
-
-        if (userRows.next()) {
-            LocalDate birthday = userRows.getDate("birthday") != null && !userRows.wasNull() ?
-                    userRows.getDate("birthday").toLocalDate() : null;
-
-            User user = User.builder()
-                    .id(userRows.getInt("user_id"))
-                    .email(userRows.getString("email"))
-                    .login(userRows.getString("login"))
-                    .name(userRows.getString("name"))
-                    .birthday(birthday)
-                    .build();
-
-            return Optional.of(user);
-        } else {
-            return Optional.empty();
-        }
-    }
+    private final UserRowMapper mapper;
 
     @Override
     public List<User> findAll() {
-        String sql = "select user_id, login, name, email, birthday from users";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeUser(rs));
+        List<User> users = jdbcTemplate.query("SELECT " +
+                "u.ID, " +
+                "u.EMAIL, " +
+                "u.LOGIN, " +
+                "u.NAME, " +
+                "u.BIRTHDAY, " +
+                "f.USER2_ID " +
+                "FROM USERS u " +
+                "LEFT JOIN FRIENDS f ON (f.USER1_ID  = u.ID)", mapper);
+        Set<User> uniqueUser = new TreeSet<>(Comparator.comparing(User::getId));
+        uniqueUser.addAll(users);
+        return new ArrayList<>(uniqueUser);
     }
 
-    private User makeUser(ResultSet rs) throws SQLException {
-        return User.builder()
-                .id(rs.getInt("user_id"))
-                .email(rs.getString("email"))
-                .login(rs.getString("login"))
-                .name(rs.getString("name"))
-                .birthday(rs.getDate("birthday").toLocalDate())
-                .build();
+    @Override
+    public User findUserById(Long id) {
+        List<User> users = jdbcTemplate.query("SELECT " +
+                "u.ID, " +
+                "u.EMAIL, " +
+                "u.LOGIN, " +
+                "u.NAME, " +
+                "u.BIRTHDAY, " +
+                "f.USER2_ID " +
+                "FROM USERS AS u " +
+                "LEFT JOIN FRIENDS AS f ON (f.USER1_ID  = u.ID)" +
+                "WHERE u.id = ?", mapper, id);
+        if (users.size() == 0) {
+            return null;
+        }
+        return users.get(0);
+    }
+
+
+    @Override
+    public User createUser(User user) {
+        String sqlQuery =
+                "INSERT INTO users (email, login, name, birthday)values (?, ?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection -> {
+            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"id"});
+            stmt.setString(1, user.getEmail());
+            stmt.setString(2, user.getLogin());
+            stmt.setString(3, user.getName());
+            stmt.setDate(4, Date.valueOf(user.getBirthday()));
+            return stmt;
+        }, keyHolder);
+        user.setId(Objects.requireNonNull(keyHolder.getKey()).longValue());
+        return user;
+    }
+
+    @Override
+    public User updateUser(User user) {
+        String sqlQuery =
+                "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
+        jdbcTemplate.update(
+                sqlQuery,
+                user.getEmail(),
+                user.getLogin(),
+                user.getName(),
+                user.getBirthday(),
+                user.getId()
+        );
+        return user;
     }
 }

@@ -1,36 +1,46 @@
 package ru.yandex.practicum.filmorate.dao;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Repository
 public class MpaDbStorage implements MpaStorage {
     private final JdbcTemplate jdbcTemplate;
 
+
     @Override
     public List<Mpa> findAllMpa() {
-        String sql = "SELECT * FROM mpa_rating";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeMpa(rs));
+        return jdbcTemplate.query("SELECT * FROM rating_mpa", new DataClassRowMapper<>(Mpa.class));
     }
 
     @Override
-    public Optional<Mpa> findMpaById(int id) {
-        String sql = "SELECT * FROM mpa_rating where rating_id = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> makeMpa(rs), id).stream().findFirst();
+    public Mpa findMpaById(Long id) {
+        try {
+            return jdbcTemplate.queryForObject("SELECT * FROM rating_mpa WHERE id = ?",
+                    new DataClassRowMapper<>(Mpa.class), id);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
-    private Mpa makeMpa(ResultSet rs) throws SQLException {
-        int id = rs.getInt("rating_id");
-        String name = rs.getString("name");
-        return new Mpa(id, name);
+    @Override
+    public Mpa getMpaOfFilm(Long id) {
+        try {
+            return jdbcTemplate.queryForObject(
+                    "SELECT * FROM rating_mpa " +
+                            "WHERE id IN (SELECT rating_mpa_id FROM films WHERE id = ?);",
+                    new DataClassRowMapper<>(Mpa.class), id);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+
     }
 }
