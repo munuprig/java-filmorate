@@ -47,7 +47,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film createFilm(Film film) {
-        if (film.getName().isEmpty()){
+        if (film.getName().isEmpty()) {
             throw new RuntimeException("Имя пустое");
         }
         String sqlQuery = "INSERT INTO films (name, description, release_date, duration, rating_mpa_id)" +
@@ -129,7 +129,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public boolean checkLikeOnFilm(Long filmId, Long userId) {
         if ((jdbcTemplate.query("SELECT user_id FROM likes " +
-                "WHERE film_id = ? AND user_id = ?", new ColumnMapRowMapper(), filmId,
+                        "WHERE film_id = ? AND user_id = ?", new ColumnMapRowMapper(), filmId,
                 userId)).contains(userId)) {
             throw new ValidationException("Пользователь с id = " + userId + " уже поставил лайк");
         }
