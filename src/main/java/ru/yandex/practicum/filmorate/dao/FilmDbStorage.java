@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,7 +17,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.*;
 
-@Slf4j
 @AllArgsConstructor
 @Repository
 public class FilmDbStorage implements FilmStorage {
@@ -64,7 +62,7 @@ public class FilmDbStorage implements FilmStorage {
 
         film.setId(keyHolder.getKey().longValue());
         if (film.getGenres() != null) {
-            List<Genre> genres = new ArrayList<>(film.getGenres());
+            Set<Genre> genres = new LinkedHashSet<>(film.getGenres());
             for (Genre genre : genres) {
                 jdbcTemplate.update("INSERT INTO films_genre (film_id, genre_id)values(?,?)", film.getId(),
                         genre.getId());
