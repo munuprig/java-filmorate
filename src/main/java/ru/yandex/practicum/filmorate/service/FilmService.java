@@ -28,9 +28,6 @@ public class FilmService {
         if (film.getGenres() != null) {
             genreStorage.checkGenresExists(film.getGenres());
         }
-        if (film.getName() != null) {
-            throw new FilmNotFoundException("Не верное имя фильма");
-        }
         log.info("Фильм {} создан", film);
         return filmStorage.createFilm(film);
     }
