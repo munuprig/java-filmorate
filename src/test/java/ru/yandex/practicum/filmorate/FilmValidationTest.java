@@ -12,11 +12,13 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.time.LocalDate;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class FilmValidationTest {
     private Film film;
     private static Validator validator;
+
 
     @BeforeEach
     void setUp() {
@@ -32,26 +34,43 @@ class FilmValidationTest {
     }
 
     @Test
-    void testCreateWithEmptyName() {
-        film.setName("");
+    void validateFilmName() {
+        film = Film.builder()
+                .id(0x1L)
+                .name("")
+                .description("Описание фильма")
+                .releaseDate(LocalDate.of(2002, 2, 2))
+                .duration(100)
+                .mpa(new Mpa(0x1L, "G"))
+                .build();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertFalse(violations.isEmpty());
+        assertEquals(0x1L, violations.size());
+        assertEquals("Введите название фильма.", violations.iterator().next().getMessage());
     }
 
     @Test
-    void testCreateWithDescriptionOver200Symbols() {
-        film.setDescription("Это очень длинное описание фильма, которое должно превышать 200 символов," +
-                " в котором расписывается все тонкости сюжетной линии, " +
-                "хронология повествования и главное под какие снэки стоит смотреть этот фильм");
+    void validateFilmDescription() {
+        film = Film.builder()
+                .id(0x1L)
+                .name("Film")
+                .description("Из-под покрова тьмы ночной,\n" +
+                        "Из чёрной ямы страшных мук\n" +
+                        "Благодарю я всех богов\n" +
+                        "За мой непокорённый дух.\n" +
+                        "\n" +
+                        "И я, попав в тиски беды,\n" +
+                        "Не дрогнул и не застонал,\n" +
+                        "И под ударами судьбы\n" +
+                        "Я ранен был, но не упал.\n" +
+                        "\n" +
+                        "Т")
+                .releaseDate(LocalDate.of(2002, 2, 2))
+                .duration(100)
+                .mpa(new Mpa(0x1L, "G"))
+                .build();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertFalse(violations.isEmpty());
-    }
-
-    @Test
-    public void testCreateWithNegativeDuration() {
-        film.setDuration(-1);
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertFalse(violations.isEmpty());
+        assertEquals(0x1L, violations.size());
+        assertEquals("Слишком длинное описание.", violations.iterator().next().getMessage());
     }
 
     @Test
@@ -59,5 +78,21 @@ class FilmValidationTest {
         film.setReleaseDate(LocalDate.of(1800, 1, 1));
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty());
+    }
+
+    @Test
+    void validateFilmDuration() {
+        film = Film.builder()
+                .id(0x1L)
+                .name("Film")
+                .description("Описание фильма")
+                .releaseDate(LocalDate.of(1895, 12, 29))
+                .duration(-100)
+                .mpa(new Mpa(0x1L, "G"))
+                .build();
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertEquals(0x1L, violations.size());
+        assertEquals("Продолжительность фильма должна быть больше 0.",
+                violations.iterator().next().getMessage());
     }
 }
