@@ -31,9 +31,9 @@ public class UserDbStorage implements UserStorage {
                 "u.LOGIN, " +
                 "u.NAME, " +
                 "u.BIRTHDAY, " +
-                "f.USER2_ID " +
+                "f.FRIENDS_id " +
                 "FROM USERS u " +
-                "LEFT JOIN FRIENDS f ON (f.USER1_ID  = u.ID)", mapper);
+                "LEFT JOIN FRIENDS f ON (f.USER_ID  = u.ID)", mapper);
         Set<User> uniqueUser = new TreeSet<>(Comparator.comparing(User::getId));
         uniqueUser.addAll(users);
         return new ArrayList<>(uniqueUser);
@@ -47,9 +47,9 @@ public class UserDbStorage implements UserStorage {
                 "u.LOGIN, " +
                 "u.NAME, " +
                 "u.BIRTHDAY, " +
-                "f.USER2_ID " +
+                "f.FRIENDS_id " +
                 "FROM USERS AS u " +
-                "LEFT JOIN FRIENDS AS f ON (f.USER1_ID  = u.ID)" +
+                "LEFT JOIN FRIENDS AS f ON (f.USER_ID  = u.ID)" +
                 "WHERE u.id = ?", mapper, id);
         if (users.size() == 0) {
             return null;

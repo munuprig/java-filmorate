@@ -31,9 +31,9 @@ public class UserRowMapper implements RowMapper<User> {
         }
 
         // если есть friends:
-        if (resultSet.getLong("USER2_ID") != 0) {
-            if (!user.getFriends().contains(resultSet.getLong("USER2_ID"))) {
-                user.getFriends().add(resultSet.getLong("USER2_ID"));
+        if (resultSet.getLong("FRIENDS_id") != 0) {
+            if (!user.getFriends().contains(resultSet.getLong("FRIENDS_id"))) {
+                user.getFriends().add(resultSet.getLong("FRIENDS_id"));
             }
         }
         if (resultSet.isLast()) {
