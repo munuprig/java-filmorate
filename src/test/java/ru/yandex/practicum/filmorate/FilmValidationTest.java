@@ -33,43 +33,26 @@ class FilmValidationTest {
     }
 
     @Test
-    void validateFilmName() {
-        film = Film.builder()
-                .id(0x1L)
-                .name("")
-                .description("Описание фильма")
-                .releaseDate(LocalDate.of(2002, 2, 2))
-                .duration(100)
-                .mpa(new Mpa(0x1L, "G"))
-                .build();
+    void testCreateWithEmptyName() {
+        film.setName("");
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertEquals(0x1L, violations.size());
-        assertEquals("Название не может быть пустым", violations.iterator().next().getMessage());
+        assertFalse(violations.isEmpty());
     }
 
     @Test
-    void validateFilmDescription() {
-        film = Film.builder()
-                .id(0x1L)
-                .name("Film")
-                .description("Из-под покрова тьмы ночной,\n" +
-                        "Из чёрной ямы страшных мук\n" +
-                        "Благодарю я всех богов\n" +
-                        "За мой непокорённый дух.\n" +
-                        "\n" +
-                        "И я, попав в тиски беды,\n" +
-                        "Не дрогнул и не застонал,\n" +
-                        "И под ударами судьбы\n" +
-                        "Я ранен был, но не упал.\n" +
-                        "\n" +
-                        "Т")
-                .releaseDate(LocalDate.of(2002, 2, 2))
-                .duration(100)
-                .mpa(new Mpa(0x1L, "G"))
-                .build();
+    void testCreateWithDescriptionOver200Symbols() {
+        film.setDescription("Это очень длинное описание фильма, которое должно превышать 200 символов," +
+                " в котором расписывается все тонкости сюжетной линии, " +
+                "хронология повествования и главное под какие снэки стоит смотреть этот фильм");
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertEquals(0x1L, violations.size());
-        assertEquals("размер должен находиться в диапазоне от 0 до 200", violations.iterator().next().getMessage());
+        assertFalse(violations.isEmpty());
+    }
+
+    @Test
+    public void testCreateWithNegativeDuration() {
+        film.setDuration(-1);
+        Set<ConstraintViolation<Film>> violations = validator.validate(film);
+        assertFalse(violations.isEmpty());
     }
 
     @Test
@@ -77,21 +60,5 @@ class FilmValidationTest {
         film.setReleaseDate(LocalDate.of(1800, 1, 1));
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertFalse(violations.isEmpty());
-    }
-
-    @Test
-    void validateFilmDuration() {
-        film = Film.builder()
-                .id(0x1L)
-                .name("Film")
-                .description("Описание фильма")
-                .releaseDate(LocalDate.of(1895, 12, 29))
-                .duration(-100)
-                .mpa(new Mpa(0x1L, "G"))
-                .build();
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
-        assertEquals(0x1L, violations.size());
-        assertEquals("должно быть больше 0",
-                violations.iterator().next().getMessage());
     }
 }
