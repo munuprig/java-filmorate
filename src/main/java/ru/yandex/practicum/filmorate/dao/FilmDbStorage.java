@@ -48,7 +48,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film createFilm(Film film) {
         if (film.getName().isEmpty()) {
-            throw new RuntimeException("Имя пустое");
+            throw new ValidationException("Имя пустое");
         }
         String sqlQuery = "INSERT INTO films (name, description, release_date, duration, rating_mpa_id)" +
                 "values (?, ?, ?, ? ,?)";
