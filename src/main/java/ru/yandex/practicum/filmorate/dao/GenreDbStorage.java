@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.GenreNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
@@ -47,7 +46,7 @@ public class GenreDbStorage implements GenreStorage {
     public boolean checkGenresExists(List<Genre> genres) {
         for (Genre genre : genres) {
             if ((jdbcTemplate.query("SELECT * FROM genres WHERE id = ?", new DataClassRowMapper<>(Genre.class), genre.getId())).isEmpty()) {
-                throw new ValidationException("Жанр с id = " + genre.getId() + " отсутствует");
+                throw new GenreNotFoundException("Жанр с id = " + genre.getId() + " отсутствует");
             }
         }
         return true;

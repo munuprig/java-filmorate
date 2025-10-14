@@ -9,38 +9,26 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
-    Map<Long, Film> filmMap = new HashMap<>();
 
     public Film mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         Long filmId = resultSet.getLong("id");
 
-        // Проверить, есть ли уже Film с таким id в мапе
-        Film film = filmMap.get(filmId);
-
-        // Если нет, создать новый объект Film
-        if (film == null) {
-            film = Film.builder()
-                    .id(filmId)
-                    .name(resultSet.getString("name"))
-                    .description(resultSet.getString("description"))
-                    .releaseDate(resultSet.getDate("release_date").toLocalDate())
-                    .duration(resultSet.getInt("duration"))
-                    .genres(new ArrayList<Genre>())
-                    .likes(new ArrayList<Long>())
-                    .mpa(Mpa.builder()
-                            .id(resultSet.getLong("mpa_id"))
-                            .name(resultSet.getString("mpa_name"))
-                            .build())
-                    .build();
-
-            // Добавить Film в мапу
-            filmMap.put(filmId, film);
-        }
+        Film film = Film.builder()
+                .id(filmId)
+                .name(resultSet.getString("name"))
+                .description(resultSet.getString("description"))
+                .releaseDate(resultSet.getDate("release_date").toLocalDate())
+                .duration(resultSet.getInt("duration"))
+                .genres(new ArrayList<Genre>())
+                .likes(new ArrayList<Long>())
+                .mpa(Mpa.builder()
+                        .id(resultSet.getLong("mpa_id"))
+                        .name(resultSet.getString("mpa_name"))
+                        .build())
+                .build();
 
         // Добавить информацию о лайках и жанрах к объекту Film
         if (resultSet.getLong("like_id") != 0) {
@@ -59,9 +47,6 @@ public class FilmRowMapper implements RowMapper<Film> {
                         .name(resultSet.getString("genre_name"))
                         .build());
             }
-        }
-        if (resultSet.isLast()) {
-            filmMap.clear();
         }
         return film;
     }
