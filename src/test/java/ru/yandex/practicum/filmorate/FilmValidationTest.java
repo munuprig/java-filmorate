@@ -44,7 +44,7 @@ class FilmValidationTest {
                 .build();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(0x1L, violations.size());
-        assertEquals("Введите название фильма.", violations.iterator().next().getMessage());
+        assertEquals("Название не может быть пустым", violations.iterator().next().getMessage());
     }
 
     @Test
@@ -69,7 +69,7 @@ class FilmValidationTest {
                 .build();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(0x1L, violations.size());
-        assertEquals("Слишком длинное описание.", violations.iterator().next().getMessage());
+        assertEquals("размер должен находиться в диапазоне от 0 до 200", violations.iterator().next().getMessage());
     }
 
     @Test
@@ -91,7 +91,7 @@ class FilmValidationTest {
                 .build();
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         assertEquals(0x1L, violations.size());
-        assertEquals("Продолжительность фильма должна быть больше 0.",
+        assertEquals("должно быть больше 0",
                 violations.iterator().next().getMessage());
     }
 }
