@@ -77,6 +77,9 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film updateFilm(Film film) {
+        if (film.getName().isEmpty()) {
+            throw new IsEmptyException("Имя пустое");
+        }
         String sqlQuery =
                 "UPDATE films " +
                         "SET name = ?, description = ?, release_date = ?, duration = ?, rating_mpa_id = ? " +
