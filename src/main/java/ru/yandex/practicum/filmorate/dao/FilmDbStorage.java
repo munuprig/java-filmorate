@@ -33,7 +33,7 @@ public class FilmDbStorage implements FilmStorage {
                 "l.USER_ID AS like_id, " +
                 "mr.id AS mpa_id, " +
                 "mr.name AS mpa_name, " +
-                "g.id AS genre_id , " +
+                "g.id AS genre_id, " +
                 "g.name AS genre_name " +
                 "FROM films AS f " +
                 "LEFT JOIN LIKES AS l ON (f.ID = l.FILM_ID) " +
@@ -64,8 +64,8 @@ public class FilmDbStorage implements FilmStorage {
         if (film.getGenres() != null) {
             Set<Genre> genres = new LinkedHashSet<>(film.getGenres());
             for (Genre genre : genres) {
-                jdbcTemplate.update("INSERT INTO films_genre (film_id, genre_id)values(?,?)"
-                        , film.getId(), genre.getId());
+                jdbcTemplate.update("INSERT INTO films_genre (film_id, genre_id)values(?,?)", film.getId(),
+                        genre.getId());
             }
         }
         return film;
@@ -74,7 +74,9 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film updateFilm(Film film) {
         String sqlQuery =
-                "UPDATE films SET name = ?, description = ?, release_date = ?, duration = ?, rating_mpa_id = ? WHERE id = ?";
+                "UPDATE films " +
+                        "SET name = ?, description = ?, release_date = ?, duration = ?, rating_mpa_id = ? " +
+                        "WHERE id = ?";
         jdbcTemplate.update(
                 sqlQuery,
                 film.getName(),
@@ -123,7 +125,9 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public boolean checkLikeOnFilm(Long filmId, Long userId) {
-        if ((jdbcTemplate.query("SELECT user_id FROM likes WHERE film_id = ? AND user_id = ?", new ColumnMapRowMapper(), filmId, userId)).contains(userId)) {
+        if ((jdbcTemplate.query("SELECT user_id FROM likes " +
+                "WHERE film_id = ? AND user_id = ?", new ColumnMapRowMapper(), filmId,
+                userId)).contains(userId)) {
             throw new ValidationException("Пользователь с id = " + userId + " уже поставил лайк");
         }
         return true;
