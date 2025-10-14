@@ -43,15 +43,13 @@ public class UserController {
     @PostMapping
     public User create(@Valid @RequestBody User user) {
         log.info("POST / user / {}", user.getLogin());
-        userService.createUser(user);
-        return userService.findUserById(user.getId());
+        return userService.createUser(user);
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
         log.info("PUT / user / {}", user.getLogin());
-        userService.updateUser(user);
-        return userService.findUserById(user.getId());
+        return userService.updateUser(user);
     }
 
     @PutMapping("/{id}/friends/{friendId}")

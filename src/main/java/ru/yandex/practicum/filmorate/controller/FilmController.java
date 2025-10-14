@@ -34,15 +34,13 @@ public class FilmController {
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         log.info("POST / film / {}", film.getName());
-        filmService.createFilm(film);
-        return filmService.findFilmById(film.getId());
+        return filmService.createFilm(film);
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
         log.info("PUT / film / {}", film.getName());
-        filmService.updateFilm(film);
-        return filmService.findFilmById(film.getId());
+        return filmService.updateFilm(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
