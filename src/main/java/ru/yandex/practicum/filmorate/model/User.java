@@ -16,17 +16,12 @@ import java.util.List;
 @AllArgsConstructor
 public class User {
     private Long id;
-
-    @NotBlank(message = "Электронная почта не может быть пустой.")
-    @Email(message = "Электронная почта должна содержать символ @.")
+    @Email
+    @NotBlank(message = "Почта не может быть пустая")
     private String email;
-
-    @NotBlank(message = "Логин не может быть пустым.")
-    @Pattern(regexp = "^\\S*$", message = "Логин не может содержать пробелы.")
+    @NotBlank(message = "Login не должен быть пустым")
     private String login;
-
     private String name;
-
     @AfterDate
     private LocalDate birthday;
     private List<Long> friends;

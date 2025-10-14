@@ -21,24 +21,16 @@ import java.util.List;
 @AllArgsConstructor
 public class Film {
     private Long id;
-
-    @NotBlank(message = "Введите название фильма.")
+    @NotBlank(message = "Название не может быть пустым")
     private String name;
-
-    @NotNull
-    @Size(max = 200, message = "Слишком длинное описание.")
+    @Size(max = 200)
     private String description;
-
     @BeforeDate
-    @ReleaseDate(value = "1895-12-28", message = "Введите дату релиза не ранее 28 декабря 1895 года.")
     private LocalDate releaseDate;
-
-    @Positive(message = "Продолжительность фильма должна быть больше 0.")
+    @Positive
     private Integer duration;
-
     @NonNull
     private Mpa mpa;
-
     private List<Long> likes;
     private List<Genre> genres;
 }
