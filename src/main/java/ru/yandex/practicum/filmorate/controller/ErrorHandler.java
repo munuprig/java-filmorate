@@ -40,6 +40,16 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse isEmptyException(final IsEmptyException e) {
+        log.info(e.getMessage());
+        return new ErrorResponse(
+                "Ведены не коректные данные",
+                e.getMessage()
+        );
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse userNotFoundException(final UserNotFoundException e) {
         log.info(e.getMessage());

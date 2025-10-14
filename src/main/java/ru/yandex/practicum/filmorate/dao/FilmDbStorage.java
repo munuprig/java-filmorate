@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.IsEmptyException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -48,7 +49,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film createFilm(Film film) {
         if (film.getName().isEmpty()) {
-            throw new ValidationException("Имя пустое");
+            throw new IsEmptyException("Имя пустое");
         }
         String sqlQuery = "INSERT INTO films (name, description, release_date, duration, rating_mpa_id)" +
                 "values (?, ?, ?, ? ,?)";
