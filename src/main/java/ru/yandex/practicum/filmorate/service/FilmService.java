@@ -25,7 +25,7 @@ public class FilmService {
     public Film createFilm(Film film) {
         if (mpaService.findMpaById(film.getMpa().getId()) == null) {
             throw new ValidationException("Указанный MPA  не найден");
-        } else if (film.getName().isEmpty()){
+        } else if (film.getName().isEmpty()) {
             throw new IsEmptyException("Имя не указано");
         }
         if (film.getGenres() != null) {
@@ -39,7 +39,7 @@ public class FilmService {
         if (film.getId() == null) {
             log.info("Id должен быть указан");
             throw new NullPointerException("Id должен быть указан");
-        } else if (film.getName().isEmpty()){
+        } else if (film.getName().isEmpty()) {
             throw new IsEmptyException("Имя не указано");
         }
         if (filmStorage.findFilmById(film.getId()) != null) {
