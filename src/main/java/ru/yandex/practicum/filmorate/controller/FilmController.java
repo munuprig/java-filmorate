@@ -20,46 +20,44 @@ public class FilmController {
     private final FilmService filmService;
 
     @GetMapping
-    public List<Film> findAll() {
+    public List<Film> findAllFilms() {
         log.info("GET / films");
-        return filmService.findAll();
+        return filmService.findAllFilms();
     }
 
     @GetMapping("/{id}")
-    public Film findFilmById(@PathVariable("id") int id) {
+    public Film findFilmById(@PathVariable("id") Long id) {
         log.info("GET / {}", id);
         return filmService.findFilmById(id);
-    }
-
-    @GetMapping("/popular")
-    public List<Film> findPopular(@RequestParam(defaultValue = "10") @Positive int count) {
-        log.info("GET / popular");
-        return filmService.findPopular(count);
     }
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
         log.info("POST / film / {}", film.getName());
-        filmService.create(film);
-        return film;
+        return filmService.createFilm(film);
     }
 
     @PutMapping
     public Film update(@Valid @RequestBody Film film) {
         log.info("PUT / film / {}", film.getName());
-        filmService.update(film);
-        return film;
+        return filmService.updateFilm(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addFilmLike(@PathVariable("id") int id, @PathVariable("userId") int userId) {
+    public void addFilmLike(@PathVariable("id") Long id, @PathVariable("userId") Long userId) {
         log.info("PUT / {} / like / {}", id, userId);
         filmService.addLike(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeFilmLike(@PathVariable("id") Integer id, @PathVariable("userId") Integer userId) {
+    public void removeFilmLike(@PathVariable("id") Long id, @PathVariable("userId") Long userId) {
         log.info("DELETE / {} / like / {}", id, userId);
         filmService.removeLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> findPopular(@RequestParam(defaultValue = "10") @Positive Long count) {
+        log.info("GET / popular");
+        return filmService.findPopular(count);
     }
 }
