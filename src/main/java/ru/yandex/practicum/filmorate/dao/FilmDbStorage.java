@@ -143,11 +143,11 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getRecommendedFilms(Long userId) {
         String similarUserQuery = """
-                SELECT l2.user_id as similar_user_id, 
+                SELECT l2.user_id as similar_user_id,
                        COUNT(*) as common_likes
                 FROM likes l1
-                JOIN likes l2 ON l1.film_id = l2.film_id 
-                WHERE l1.user_id = ? 
+                JOIN likes l2 ON l1.film_id = l2.film_id
+                WHERE l1.user_id = ?
                   AND l2.user_id != ?
                 GROUP BY l2.user_id
                 ORDER BY common_likes DESC
@@ -164,10 +164,10 @@ public class FilmDbStorage implements FilmStorage {
         Long similarUserId = (Long) similarUsers.get(0).get("similar_user_id");
 
         String recommendedFilmsQuery = """
-                SELECT f.id, 
-                       f.name, 
-                       f.description, 
-                       f.release_date, 
+                SELECT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
                        f.duration,
                        mr.id AS mpa_id,
                        mr.name AS mpa_name,
@@ -180,14 +180,14 @@ public class FilmDbStorage implements FilmStorage {
                 LEFT JOIN films_genre fg ON f.id = fg.film_id
                 LEFT JOIN genres g ON fg.genre_id = g.id
                 WHERE f.id IN (
-                    SELECT film_id 
-                    FROM likes 
+                    SELECT film_id
+                    FROM likes
                     WHERE user_id = ?
                 )
                 AND l.user_id IS NULL
                 ORDER BY (
-                    SELECT COUNT(*) 
-                    FROM likes l2 
+                    SELECT COUNT(*)
+                    FROM likes l2
                     WHERE l2.film_id = f.id
                 ) DESC
                 """;
