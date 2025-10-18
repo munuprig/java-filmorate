@@ -71,6 +71,7 @@ public class UserController {
         log.info("DELETE / {} ", id);
         userService.deleteUser(id);
     }
+
     @GetMapping("/{id}/recommendations")
     public List<Film> getRecommendations(@PathVariable("id") Long id) {
         log.info("GET / {}/recommendations", id);
