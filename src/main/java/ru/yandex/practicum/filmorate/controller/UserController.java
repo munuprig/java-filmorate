@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -60,7 +61,13 @@ public class UserController {
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public void removeFriend(@PathVariable("id") Long id, @PathVariable("friendId") Long friendId) {
-        log.info("PUT / {} / friends / {}", id, friendId);
+        log.info("DELETE / {} / friends / {}", id, friendId);
         userService.removeFriend(id, friendId);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUserById(@PathVariable("id") @Positive Long id) {
+        log.info("DELETE / {} ", id);
+        userService.deleteUser(id);
     }
 }

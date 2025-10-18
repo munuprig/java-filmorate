@@ -50,16 +50,16 @@ CREATE TABLE IF NOT EXISTS friends (
               PRIMARY KEY (user_id, friends_id)
               );
 
-ALTER TABLE friends ADD FOREIGN KEY (user_id) REFERENCES users (id);
+ALTER TABLE friends ADD FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;
 
-ALTER TABLE friends ADD FOREIGN KEY (friends_id) REFERENCES users (id);
+ALTER TABLE friends ADD FOREIGN KEY (friends_id) REFERENCES users (id) ON DELETE CASCADE;
 
 ALTER TABLE films ADD FOREIGN KEY (rating_mpa_id) REFERENCES rating_mpa (id);
 
-ALTER TABLE likes ADD FOREIGN KEY (film_id) REFERENCES films (id);
+ALTER TABLE likes ADD FOREIGN KEY (film_id) REFERENCES films (id) ON DELETE CASCADE;
 
-ALTER TABLE likes ADD FOREIGN KEY (user_id) REFERENCES users (id);
+ALTER TABLE likes ADD FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;
 
-ALTER TABLE films_genre ADD FOREIGN KEY (film_id) REFERENCES films (id);
+ALTER TABLE films_genre ADD FOREIGN KEY (film_id) REFERENCES films (id) ON DELETE CASCADE;
 
 ALTER TABLE films_genre ADD FOREIGN KEY (genre_id) REFERENCES genres (id);
