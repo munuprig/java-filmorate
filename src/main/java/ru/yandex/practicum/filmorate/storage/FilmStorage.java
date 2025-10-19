@@ -18,4 +18,6 @@ public interface FilmStorage {
     boolean checkLikeOnFilm(Long filmId, Long userId);
 
     void deleteFilm(Long id);
+
+    List<Film> getRecommendedFilms(Long userId);
 }
