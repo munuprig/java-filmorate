@@ -40,7 +40,6 @@ class FilmDbStorageTest {
                 .genres(new ArrayList<>())
                 .director("Test Director")
                 .build();
-
         storage.createFilm(filmToCreate);
         Film film = storage.findFilmById(1L);
         assertThat(film).hasFieldOrPropertyWithValue("name", "updateName");
@@ -63,7 +62,6 @@ class FilmDbStorageTest {
                 .genres(null)
                 .director("Test Director")
                 .build();
-
         storage.updateFilm(filmToUpdate);
 
         Film film = storage.findFilmById(1L);
