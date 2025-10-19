@@ -174,4 +174,9 @@ public class FilmDbStorage implements FilmStorage {
         return true;
     }
 
+    @Override
+    public void deleteFilm(Long id) {
+        String sql = "DELETE FROM films WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
 }

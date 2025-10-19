@@ -16,4 +16,6 @@ public interface FilmStorage {
     Film findFilmById(Long id);
 
     boolean checkLikeOnFilm(Long filmId, Long userId);
+
+    void deleteFilm(Long id);
 }

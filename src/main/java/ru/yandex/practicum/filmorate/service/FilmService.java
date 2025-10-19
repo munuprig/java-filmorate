@@ -77,4 +77,8 @@ public class FilmService {
     public List<Film> findPopular(Long count, Long genreId, Integer year) {
         return filmStorage.findPopular(count, genreId, year);
     }
+
+    public void deleteFilm(Long filmId) {
+        filmStorage.deleteFilm(filmId);
+    }
 }

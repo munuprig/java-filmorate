@@ -82,4 +82,12 @@ public class UserService {
         }
         return friendStorage.findCommonFriends(userId, friendId);
     }
+
+    public void deleteUser(Long userId) {
+        if (userStorage.findUserById(userId) == null) {
+            throw new UserNotFoundException("Пользователь не найден");
+        }
+        userStorage.deleteUser(userId);
+        log.info("пользователь с id =  {}  удалён", userId);
+    }
 }
