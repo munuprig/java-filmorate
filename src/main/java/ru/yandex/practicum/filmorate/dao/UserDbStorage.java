@@ -11,8 +11,8 @@ import ru.yandex.practicum.filmorate.mappers.UserRowMapper;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.sql.*;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.util.*;
 
 @AllArgsConstructor

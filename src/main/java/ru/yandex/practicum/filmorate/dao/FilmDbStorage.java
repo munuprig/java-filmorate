@@ -133,29 +133,29 @@ public class FilmDbStorage implements FilmStorage {
         sql.append("LEFT JOIN GENRES AS g ON (fg.genre_id = g.ID) ");
         sql.append("LEFT JOIN (SELECT FILM_ID, COUNT(user_id) AS cnt_like FROM likes GROUP BY FILM_ID) like_count ON (f.id = like_count.FILM_ID) ");
         sql.append("WHERE 1=1 ");
-        
+
         List<Object> params = new ArrayList<>();
-        
+
         if (genreId != null) {
             sql.append("AND f.id IN (SELECT film_id FROM films_genre WHERE genre_id = ?) ");
             params.add(genreId);
         }
-        
+
         if (year != null) {
             sql.append("AND EXTRACT(YEAR FROM f.release_date) = ? ");
             params.add(year);
         }
-        
+
         sql.append("ORDER BY COALESCE(like_count.cnt_like, 0) DESC, f.id ");
-        
+
         List<Film> films = jdbcTemplate.query(sql.toString(), mapper, params.toArray());
-        
+
         // Убираем дубликаты и возвращаем уникальные фильмы
         Map<Long, Film> uniqueFilms = new LinkedHashMap<>();
         for (Film film : films) {
             uniqueFilms.put(film.getId(), film);
         }
-        
+
         // Применяем LIMIT после дедупликации
         List<Film> result = new ArrayList<>(uniqueFilms.values());
         if (result.size() > count) {
@@ -167,7 +167,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public boolean checkLikeOnFilm(Long filmId, Long userId) {
         List<Map<String, Object>> result = jdbcTemplate.query("SELECT user_id FROM likes " +
-                        "WHERE film_id = ? AND user_id = ?", new ColumnMapRowMapper(), filmId, userId);
+                "WHERE film_id = ? AND user_id = ?", new ColumnMapRowMapper(), filmId, userId);
         if (!result.isEmpty()) {
             throw new ValidationException("Пользователь с id = " + userId + " уже поставил лайк");
         }
