@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +38,8 @@ class FilmDbStorageTest {
                 200,
                 new Mpa(1L, "G"),
                 new ArrayList<>(),
-                new ArrayList<>()
+                new ArrayList<>(),
+                new HashSet<>()
         ));
         Film film = storage.findFilmById(1L);
         assertThat(film).hasFieldOrPropertyWithValue("name", "updateName");
@@ -57,7 +59,8 @@ class FilmDbStorageTest {
                 200,
                 new Mpa(1L, "G"),
                 null,
-                null
+                null,
+                new HashSet<>()
         ));
 
         Film film = storage.findFilmById(1L);
