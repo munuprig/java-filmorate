@@ -20,4 +20,8 @@ public interface FilmStorage {
     void deleteFilm(Long id);
 
     List<Film> getRecommendedFilms(Long userId);
+
+    List<Film> findFilmsByDirectorSortedByYear(Long directorId);
+
+    List<Film> findFilmsByDirectorSortedByLikes(Long directorId);
 }

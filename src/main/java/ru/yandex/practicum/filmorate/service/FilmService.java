@@ -6,10 +6,15 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -20,6 +25,7 @@ public class FilmService {
     private final UserStorage userStorage;
     private final MpaService mpaService;
     private final GenreStorage genreStorage;
+    private final DirectorService directorService;
 
     public Film createFilm(Film film) {
         if (mpaService.findMpaById(film.getMpa().getId()) == null) {
@@ -45,14 +51,19 @@ public class FilmService {
     }
 
     public Film findFilmById(Long filmId) {
-        if (filmStorage.findFilmById(filmId) != null) {
-            return filmStorage.findFilmById(filmId);
+        Film film = filmStorage.findFilmById(filmId);
+        if (film != null) {
+            Set<Director> directors = directorService.findDirectorByFilmId(filmId);
+            film.setDirectors(directors);
+            return film;
         }
         throw new FilmNotFoundException("Фильм с id = " + filmId + " не найден");
     }
 
     public List<Film> findAllFilms() {
-        return filmStorage.findAllFilms();
+        List<Film> films = filmStorage.findAllFilms();
+        loadDirectorsForFilms(films);
+        return films;
     }
 
     public void addLike(Long filmId, Long userId) {
@@ -75,10 +86,53 @@ public class FilmService {
     }
 
     public List<Film> findPopular(Long count) {
-        return filmStorage.findPopular(count);
+        List<Film> popularFilms = filmStorage.findPopular(count);
+        loadDirectorsForFilms(popularFilms);
+        return popularFilms;
     }
 
     public void deleteFilm(Long filmId) {
+        findFilmById(filmId);
         filmStorage.deleteFilm(filmId);
+        log.info("Фильм с id = {} удален", filmId);
+    }
+
+    private void loadDirectorsForFilm(Film film) {
+        if (film != null) {
+            Set<Director> directors = directorService.findDirectorByFilmId(film.getId());
+            film.setDirectors(directors);
+        }
+    }
+
+    private void loadDirectorsForFilms(List<Film> films) {
+        if (films != null && !films.isEmpty()) {
+            Map<Long, Film> filmMap = films.stream()
+                    .collect(Collectors.toMap(Film::getId, Function.identity()));
+            directorService.loadDirectorsForFilms(filmMap);
+        }
+    }
+
+    /**
+     * Получить фильмы режиссера отсортированные по лайкам
+     */
+    public List<Film> getFilmsByDirectorSortedByLikes(Long directorId) {
+        log.info("Получение фильмов режиссера {} отсортированных по лайкам", directorId);
+        // Проверяем что режиссер существует
+        directorService.getDirectorById(directorId);
+        List<Film> films = filmStorage.findFilmsByDirectorSortedByLikes(directorId);
+        loadDirectorsForFilms(films);
+        return films;
+    }
+
+    /**
+     * Получить фильмы режиссера отсортированные по годам
+     */
+    public List<Film> getFilmsByDirectorSortedByYear(Long directorId) {
+        log.info("Получение фильмов режиссера {} отсортированных по годам", directorId);
+        // Проверяем что режиссер существует
+        directorService.getDirectorById(directorId);
+        List<Film> films = filmStorage.findFilmsByDirectorSortedByYear(directorId);
+        loadDirectorsForFilms(films);
+        return films;
     }
 }
