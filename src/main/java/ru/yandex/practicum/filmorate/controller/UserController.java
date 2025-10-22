@@ -84,4 +84,5 @@ public class UserController {
         log.info("GET / users/{}/feed", id);
         return userService.getFeed(id);
     }
+
 }
