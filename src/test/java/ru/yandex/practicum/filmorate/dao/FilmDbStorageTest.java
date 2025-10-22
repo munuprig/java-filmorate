@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,18 +30,17 @@ class FilmDbStorageTest {
 
     @Test
     void createFilm() {
-        Film filmToCreate = Film.builder()
-                .id(1L)
-                .name("updateName")
-                .description("description")
-                .releaseDate(LocalDate.of(1991, 1, 12))
-                .duration(200)
-                .mpa(new Mpa(1L, "G"))
-                .likes(new ArrayList<>())
-                .genres(new ArrayList<>())
-                .director("Test Director")
-                .build();
-        storage.createFilm(filmToCreate);
+        storage.createFilm(new Film(
+                1L,
+                "updateName",
+                "description",
+                LocalDate.of(1991, 1, 12),
+                200,
+                new Mpa(1L, "G"),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new HashSet<>()
+        ));
         Film film = storage.findFilmById(1L);
         assertThat(film).hasFieldOrPropertyWithValue("name", "updateName");
         assertThat(film).hasFieldOrPropertyWithValue("description", "description");
@@ -51,18 +51,17 @@ class FilmDbStorageTest {
     @Test
     @Sql(scripts = {"/test-get-films.sql"})
     void updateFilm() {
-        Film filmToUpdate = Film.builder()
-                .id(1L)
-                .name("updateName")
-                .description("description")
-                .releaseDate(LocalDate.of(1991, 1, 12))
-                .duration(200)
-                .mpa(new Mpa(1L, "G"))
-                .likes(null)
-                .genres(null)
-                .director("Test Director")
-                .build();
-        storage.updateFilm(filmToUpdate);
+        storage.updateFilm(new Film(
+                1L,
+                "updateName",
+                "description",
+                LocalDate.of(1991, 01, 12),
+                200,
+                new Mpa(1L, "G"),
+                null,
+                null,
+                new HashSet<>()
+        ));
 
         Film film = storage.findFilmById(1L);
         assertThat(film).hasFieldOrPropertyWithValue("name", "updateName");

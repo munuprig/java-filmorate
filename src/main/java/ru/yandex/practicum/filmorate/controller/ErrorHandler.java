@@ -90,4 +90,11 @@ public class ErrorHandler {
                 e.getMessage()
         );
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleDirectorNotFoundException(final DirectorNotFoundException e) {
+        log.info("Режиссер не найден: {}", e.getMessage());
+        return new ErrorResponse("Режиссер не найден", e.getMessage());
+    }
 }

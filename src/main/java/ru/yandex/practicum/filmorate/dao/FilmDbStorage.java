@@ -8,6 +8,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -15,6 +16,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Repository
@@ -67,6 +69,11 @@ public class FilmDbStorage implements FilmStorage {
                         genre.getId());
             }
         }
+
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            saveDirectorsForFilm(film.getId(), film.getDirectors());
+        }
+
         return film;
     }
 
@@ -85,6 +92,12 @@ public class FilmDbStorage implements FilmStorage {
                 film.getMpa().getId(),
                 film.getId()
         );
+
+        jdbcTemplate.update("DELETE FROM films_director WHERE film_id = ?", film.getId());
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            saveDirectorsForFilm(film.getId(), film.getDirectors());
+        }
+
         return film;
     }
 
@@ -237,6 +250,74 @@ public class FilmDbStorage implements FilmStorage {
         Set<Film> uniqueFilms = new TreeSet<>(Comparator.comparing(Film::getId));
         uniqueFilms.addAll(recommendedFilms);
 
+        return new ArrayList<>(uniqueFilms);
+    }
+
+    private void saveDirectorsForFilm(Long filmId, Set<Director> directors) {
+        String sql = "INSERT INTO films_director (film_id, director_id) VALUES (?, ?)";
+
+        List<Object[]> batchArgs = directors.stream()
+                .map(director -> new Object[]{filmId, director.getId()})
+                .collect(Collectors.toList());
+
+        jdbcTemplate.batchUpdate(sql, batchArgs);
+    }
+
+    @Override
+    public List<Film> findFilmsByDirectorSortedByLikes(Long directorId) {
+        String sql = """
+                SELECT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       l.USER_ID AS like_id,
+                       m.id AS mpa_id,
+                       m.name AS mpa_name,
+                       g.id AS genre_id,
+                       g.name AS genre_name
+                FROM films f
+                LEFT JOIN rating_mpa m ON f.rating_mpa_id = m.id
+                LEFT JOIN likes l ON f.id = l.film_id
+                LEFT JOIN films_genre fg ON f.id = fg.film_id
+                LEFT JOIN genres g ON fg.genre_id = g.id
+                WHERE f.id IN (SELECT film_id FROM films_director WHERE director_id = ?)
+                ORDER BY (
+                    SELECT COUNT(*) FROM likes l2 WHERE l2.film_id = f.id
+                ) DESC, f.id
+                """;
+
+        List<Film> films = jdbcTemplate.query(sql, mapper, directorId);
+        Set<Film> uniqueFilms = new TreeSet<>(Comparator.comparing(Film::getId));
+        uniqueFilms.addAll(films);
+        return new ArrayList<>(uniqueFilms);
+    }
+
+    @Override
+    public List<Film> findFilmsByDirectorSortedByYear(Long directorId) {
+        String sql = """
+                SELECT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       l.USER_ID AS like_id,
+                       m.id AS mpa_id,
+                       m.name AS mpa_name,
+                       g.id AS genre_id,
+                       g.name AS genre_name
+                FROM films f
+                LEFT JOIN rating_mpa m ON f.rating_mpa_id = m.id
+                LEFT JOIN likes l ON f.id = l.film_id
+                LEFT JOIN films_genre fg ON f.id = fg.film_id
+                LEFT JOIN genres g ON fg.genre_id = g.id
+                WHERE f.id IN (SELECT film_id FROM films_director WHERE director_id = ?)
+                ORDER BY f.release_date, f.id
+                """;
+
+        List<Film> films = jdbcTemplate.query(sql, mapper, directorId);
+        Set<Film> uniqueFilms = new TreeSet<>(Comparator.comparing(Film::getId));
+        uniqueFilms.addAll(films);
         return new ArrayList<>(uniqueFilms);
     }
 }

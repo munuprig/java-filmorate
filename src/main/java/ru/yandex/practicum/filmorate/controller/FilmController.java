@@ -69,4 +69,20 @@ public class FilmController {
         log.info("GET / popular with count={}, genreId={}, year={}", count, genreId, year);
         return filmService.findPopular(count, genreId, year);
     }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> getFilmsByDirector(
+            @PathVariable Long directorId,
+            @RequestParam(defaultValue = "likes") String sortBy) {
+
+        log.info("Запрос фильмов режиссера {} с сортировкой по: {}", directorId, sortBy);
+
+        switch (sortBy.toLowerCase()) {
+            case "year":
+                return filmService.getFilmsByDirectorSortedByYear(directorId);
+            case "likes":
+            default:
+                return filmService.getFilmsByDirectorSortedByLikes(directorId);
+        }
+    }
 }
