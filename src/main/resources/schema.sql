@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS films (
               release_date DATE,
               duration INT NOT NULL,
               rating_mpa_id BIGINT,
+              director VARCHAR(100),
               PRIMARY KEY (id)
               );
 CREATE TABLE IF NOT EXISTS rating_mpa (

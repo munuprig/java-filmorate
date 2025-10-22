@@ -63,8 +63,10 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> findPopular(@RequestParam(defaultValue = "10") @Positive Long count) {
-        log.info("GET / popular");
-        return filmService.findPopular(count);
+    public List<Film> findPopular(@RequestParam(defaultValue = "10") @Positive Long count,
+                                  @RequestParam(required = false) Long genreId,
+                                  @RequestParam(required = false) Integer year) {
+        log.info("GET / popular with count={}, genreId={}, year={}", count, genreId, year);
+        return filmService.findPopular(count, genreId, year);
     }
 }
