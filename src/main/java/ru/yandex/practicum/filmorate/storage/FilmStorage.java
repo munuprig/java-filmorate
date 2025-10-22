@@ -7,7 +7,7 @@ import java.util.List;
 public interface FilmStorage {
     List<Film> findAllFilms();
 
-    List<Film> findPopular(Long count);
+    List<Film> findPopular(Long count, Long genreId, Integer year);
 
     Film createFilm(Film film);
 

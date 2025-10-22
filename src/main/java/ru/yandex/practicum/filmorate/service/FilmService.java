@@ -85,10 +85,8 @@ public class FilmService {
         likeStorage.removeLike(filmId, userId);
     }
 
-    public List<Film> findPopular(Long count) {
-        List<Film> popularFilms = filmStorage.findPopular(count);
-        loadDirectorsForFilms(popularFilms);
-        return popularFilms;
+    public List<Film> findPopular(Long count, Long genreId, Integer year) {
+        return filmStorage.findPopular(count, genreId, year);
     }
 
     public void deleteFilm(Long filmId) {
