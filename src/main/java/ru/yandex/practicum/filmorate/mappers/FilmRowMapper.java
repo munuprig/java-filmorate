@@ -18,11 +18,8 @@ public class FilmRowMapper implements RowMapper<Film> {
 
     public Film mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         Long filmId = resultSet.getLong("id");
-
-        // Проверить, есть ли уже Film с таким id в мапе
         Film film = filmMap.get(filmId);
 
-        // Если нет, создать новый объект Film
         if (film == null) {
             film = Film.builder()
                     .id(filmId)
@@ -40,7 +37,6 @@ public class FilmRowMapper implements RowMapper<Film> {
             filmMap.put(filmId, film);
         }
 
-        // Добавить информацию о лайках и жанрах к объекту Film
         if (resultSet.getLong("like_id") != 0) {
             if (!film.getLikes().contains(resultSet.getLong("like_id"))) {
                 film.getLikes().add(resultSet.getLong("like_id"));
