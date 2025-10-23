@@ -91,7 +91,3 @@ ALTER TABLE films_genre ADD FOREIGN KEY (genre_id) REFERENCES genres (id);
 ALTER TABLE films_director ADD FOREIGN KEY (film_id) REFERENCES films (id) ON DELETE CASCADE;
 
 ALTER TABLE films_director ADD FOREIGN KEY (director_id) REFERENCES directors (id);
-
-ALTER TABLE reviews ADD FOREIGN KEY (film_id) REFERENCES films (id) ON DELETE CASCADE;
-
-ALTER TABLE reviews ADD FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;

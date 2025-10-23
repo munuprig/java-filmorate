@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.mappers.ReviewsRowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.ReviewsStorage;
 
+import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,17 +31,18 @@ public class ReviewsDBStorage implements ReviewsStorage {
 
     @Override
     public Review createReview(Review review) {
+
+        String sqlQuery =
+                "INSERT INTO reviews(content, is_positive, user_id, film_id) " + "VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
-            var ps = connection.prepareStatement("INSERT INTO reviews(content, is_positive, user_id, film_id) " +
-                    "VALUES (?, ?, ?, ?)", new String[]{"reviewId"});
-            ps.setString(1, review.getContent());
-            ps.setBoolean(2, review.isPositive());
-            ps.setLong(3, review.getUserId());
-            ps.setLong(4, review.getFilmId());
-            return ps;
+            PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"reviewId"});
+            stmt.setString(1, review.getContent());
+            stmt.setBoolean(2, review.isPositive());
+            stmt.setLong(3, review.getUserId());
+            stmt.setLong(4, review.getFilmId());
+            return stmt;
         }, keyHolder);
-
         review.setReviewId(Objects.requireNonNull(keyHolder.getKey()).longValue());
         return review;
     }
