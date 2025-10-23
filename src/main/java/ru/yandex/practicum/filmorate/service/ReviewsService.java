@@ -33,7 +33,7 @@ public class ReviewsService {
     }
 
     public Review updateReview(Review updatedReview) {
-        if (findById(updatedReview.getId()) != null) {
+        if (findById(updatedReview.getReviewId()) != null) {
             throw new IllegalArgumentException("Отзыв не найден");
         }
         return reviewsStorage.updateReview(updatedReview);

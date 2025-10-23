@@ -22,7 +22,7 @@ public class ReviewsController {
      */
     @PostMapping
     public Review createReview(@Valid @RequestBody Review review) {
-        log.info("POST / film / {}", review.getId());
+        log.info("POST / film / {}", review.getReviewId());
         return reviewService.createReview(review);
     }
 
@@ -49,7 +49,7 @@ public class ReviewsController {
      */
     @PutMapping
     public Review updateReview(@Valid @RequestBody Review updatedReview) {
-        log.info("PUT / film / {}", updatedReview.getId());
+        log.info("PUT / film / {}", updatedReview.getReviewId());
         return reviewService.updateReview(updatedReview);
     }
 

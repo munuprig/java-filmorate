@@ -10,7 +10,7 @@ import org.springframework.validation.annotation.Validated;
 @RequiredArgsConstructor
 @AllArgsConstructor
 public class Review {
-    private Long id;
+    private Long reviewId;
 
     private String content;
 

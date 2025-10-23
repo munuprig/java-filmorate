@@ -12,7 +12,6 @@ import java.util.ArrayList;
 public class UserRowMapper implements RowMapper<User> {
 
     public User mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-        Long userId = resultSet.getLong("id");
 
         User user = User.builder()
                 .id(resultSet.getLong("id"))
