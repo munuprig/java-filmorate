@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/reviews")
 public class ReviewsController {
 
-    private ReviewsService reviewService;
+    private final ReviewsService reviewService;
 
     /**
      * Создать новый отзыв

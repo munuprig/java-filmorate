@@ -13,8 +13,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ReviewsService {
-    private ReviewsStorage reviewsStorage;
-    private UserStorage userStorage;
+    private final ReviewsStorage reviewsStorage;
+    private final UserStorage userStorage;
 
     public List<Review> findAllReviews() {
         return reviewsStorage.findAll();
