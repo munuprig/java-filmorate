@@ -62,7 +62,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse ReviewsNotFoundException(final ReviewsNotFoundException e) {
+    public ErrorResponse reviewsNotFoundException(final ReviewsNotFoundException e) {
         log.info(e.getMessage());
         return new ErrorResponse(
                 "Отзыв не найден",
