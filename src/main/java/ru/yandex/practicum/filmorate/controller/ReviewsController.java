@@ -65,7 +65,7 @@ public class ReviewsController {
     /**
      * Получить отзывы по идентификатору фильма
      */
-    @GetMapping
+    @GetMapping("/reviews?filmId={filmId}&count={count}")
     public List<Review> getReviewsByFilmId(
             @RequestParam(required = false) Long filmId,
             @RequestParam(defaultValue = "10") Integer count
@@ -77,6 +77,20 @@ public class ReviewsController {
             return reviewService.findAllReviews();
         }
     }
+
+    @GetMapping("/reviews?filmId={filmId}")
+    public List<Review> getReviewsByFilmIdCountTen(
+            @RequestParam(required = false) Long filmId,
+            @RequestParam(defaultValue = "10") Integer count
+    ) {
+        log.info("GET /reviews?filmId= {} &count=10.", filmId);
+        if (filmId != null && filmId > 0) {
+            return reviewService.findTopNByFilmId(filmId, count);
+        } else {
+            return reviewService.findAllReviews();
+        }
+    }
+
 
     /**
      * Оценить отзыв положительной оценкой (лайком)
