@@ -40,7 +40,7 @@ public class ReviewsDBStorage implements ReviewsStorage {
         jdbcTemplate.update(connection -> {
             PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"reviewId"});
             stmt.setString(1, review.getContent());
-            stmt.setBoolean(2, review.isPositive());
+            stmt.setBoolean(2, review.getIsPositive());
             stmt.setLong(3, review.getUserId());
             stmt.setLong(4, review.getFilmId());
             return stmt;
@@ -52,7 +52,7 @@ public class ReviewsDBStorage implements ReviewsStorage {
     @Override
     public Review updateReview(Review review) {
         jdbcTemplate.update("UPDATE reviews SET content=?, is_positive=? WHERE reviewId=?", review.getContent(),
-                review.isPositive(), review.getReviewId());
+                review.getIsPositive(), review.getReviewId());
         return review;
     }
 

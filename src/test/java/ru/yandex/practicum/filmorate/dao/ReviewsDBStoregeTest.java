@@ -28,7 +28,7 @@ public class ReviewsDBStoregeTest {
                 "aaa",
                 false,
                 1L,
-                -1L,
+                0L,
                 0
         ));
 
