@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ReviewsNotFoundException;
@@ -12,6 +13,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReviewsService {
@@ -31,6 +33,9 @@ public class ReviewsService {
     }
 
     public Review createReview(Review review) {
+        if (review.getIsPositive() == null || review.getUserId() <= 0 || review.getFilmId() <= 0 ) {
+            throw new UserNotFoundException("Пользователь не найден");
+        }
         review.setUseful(0); // Изначально выставляем нулевой рейтинг
         return reviewsStorage.createReview(review);
     }
