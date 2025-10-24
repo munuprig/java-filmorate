@@ -79,8 +79,8 @@ public class ReviewsDBStorage implements ReviewsStorage {
     @Override
     public Review findByUserId(Long id, Long userId) {
         try {
-            return jdbcTemplate.queryForObject("SELECT * FROM reviews WHERE reviewId = ? AND user_id=?"
-                    , mapper, id, userId);
+            return jdbcTemplate.queryForObject("SELECT * FROM reviews WHERE reviewId = ? AND user_id=?",
+                    mapper, id, userId);
         } catch (EmptyResultDataAccessException e) {
             throw new ReviewsNotFoundException("Отзыв с id = " + id + " не найден");
         }
