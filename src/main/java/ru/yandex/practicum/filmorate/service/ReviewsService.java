@@ -33,7 +33,7 @@ public class ReviewsService {
     }
 
     public Review createReview(Review review) {
-        if (review.getIsPositive() == null || review.getUserId() <= 0L || review.getFilmId() <= 0L) {
+        if (review.getUserId() <= 0L || review.getFilmId() <= 0L) {
             throw new UserNotFoundException("Пользователь не найден");
         }
         review.setUseful(0); // Изначально выставляем нулевой рейтинг
@@ -41,9 +41,7 @@ public class ReviewsService {
     }
 
     public Review updateReview(Review updatedReview) {
-        if (findById(updatedReview.getReviewId()) != null) {
-            throw new IllegalArgumentException("Отзыв не найден");
-        }
+        findById(updatedReview.getReviewId());
         return reviewsStorage.updateReview(updatedReview);
     }
 
