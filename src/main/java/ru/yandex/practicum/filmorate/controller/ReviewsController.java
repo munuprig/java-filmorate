@@ -74,7 +74,7 @@ public class ReviewsController {
         if (filmId != null && filmId > 0) {
             return reviewService.findTopNByFilmId(filmId, count);
         } else {
-            return reviewService.findAllReviews();
+            return reviewService.findTopNByFilmId(filmId, count);
         }
     }
 
@@ -86,7 +86,7 @@ public class ReviewsController {
         if (filmId != null && filmId > 0) {
             return reviewService.findByFilmId(filmId);
         } else {
-            return reviewService.findAllReviews();
+            return reviewService.findByFilmId(filmId);
         }
     }
 
