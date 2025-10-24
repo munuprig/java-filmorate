@@ -78,19 +78,6 @@ public class ReviewsController {
         }
     }
 
-    @GetMapping("/reviews?filmId={filmId}")
-    public List<Review> getReviewsByFilmIdCountTen(
-            @RequestParam(required = false) Long filmId
-    ) {
-        log.info("GET /reviews?filmId= {} &count=10.", filmId);
-        if (filmId != null && filmId > 0) {
-            return reviewService.findByFilmId(filmId);
-        } else {
-            return reviewService.findAllReviews();
-        }
-    }
-
-
     /**
      * Оценить отзыв положительной оценкой (лайком)
      */
