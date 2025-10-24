@@ -59,6 +59,16 @@ public class UserService {
             throw new UserNotFoundException("Пользователь не найден");
         }
         friendStorage.addFriend(userId, friendId);
+
+        Event event = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(userId)
+                .eventType(EventType.FRIEND)
+                .operation(Operation.ADD)
+                .entityId(friendId)
+                .build();
+        feedStorage.addEvent(event);
+
         log.info("Пользователь {} стал другом пользователя {}",
                 userStorage.findUserById(userId), userStorage.findUserById(friendId));
     }
@@ -68,6 +78,16 @@ public class UserService {
             throw new UserNotFoundException("Пользователь не найден");
         }
         friendStorage.removeFriend(userId, friendId);
+
+        Event event = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(userId)
+                .eventType(EventType.FRIEND)
+                .operation(Operation.REMOVE)
+                .entityId(friendId)
+                .build();
+        feedStorage.addEvent(event);
+
         log.info("Пользователи {} {} больше не друзья ",
                 userStorage.findUserById(userId), userStorage.findUserById(friendId));
     }

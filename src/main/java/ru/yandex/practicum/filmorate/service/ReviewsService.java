@@ -6,7 +6,11 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ReviewsNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.EventType;
+import ru.yandex.practicum.filmorate.model.Operation;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.storage.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.ReviewsStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -20,6 +24,7 @@ public class ReviewsService {
     private final ReviewsStorage reviewsStorage;
     private final UserStorage userStorage;
     private final FilmService filmService;
+    private final FeedStorage feedStorage;
 
     public List<Review> findAllReviews() {
         return reviewsStorage.findAll().stream()
@@ -39,16 +44,44 @@ public class ReviewsService {
             throw new UserNotFoundException("Пользователь не найден");
         }
         review.setUseful(0); // Изначально выставляем нулевой рейтинг
+        Review createdReview = reviewsStorage.createReview(review);
+        Event event = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(review.getUserId())
+                .eventType(EventType.REVIEW)
+                .operation(Operation.ADD)
+                .entityId(createdReview.getReviewId())
+                .build();
+        feedStorage.addEvent(event);
         return reviewsStorage.createReview(review);
     }
 
     public Review updateReview(Review updatedReview) {
         findById(updatedReview.getReviewId());
+        Review review = reviewsStorage.updateReview(updatedReview);
+
+        Event event = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(review.getUserId())
+                .eventType(EventType.REVIEW)
+                .operation(Operation.UPDATE)
+                .entityId(review.getReviewId())
+                .build();
+        feedStorage.addEvent(event);
         return reviewsStorage.updateReview(updatedReview);
     }
 
     public void deleteReview(Long id) {
+        Review review = findById(id);
         reviewsStorage.deleteReview(id);
+        Event event = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(review.getUserId())
+                .eventType(EventType.REVIEW)
+                .operation(Operation.REMOVE)
+                .entityId(id)
+                .build();
+        feedStorage.addEvent(event);
     }
 
     public void likeReview(Long reviewId, Long userId) {
