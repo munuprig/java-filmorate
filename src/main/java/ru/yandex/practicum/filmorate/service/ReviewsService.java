@@ -51,7 +51,7 @@ public class ReviewsService {
             throw new UserNotFoundException("Пользователь не найден");
         }
         Long filmId = findById(reviewId).getFilmId();
-        if (filmId > 0 || filmStorage.findFilmById(filmId) == null){
+        if (filmId > 0 || filmStorage.findFilmById(filmId) == null) {
             throw new FilmNotFoundException("Фильм не найден");
         }
         Review review = findById(reviewId);
@@ -69,7 +69,7 @@ public class ReviewsService {
             throw new UserNotFoundException("Пользователь не найден");
         }
         Long filmId = findById(reviewId).getFilmId();
-        if (filmId > 0 || filmStorage.findFilmById(filmId) == null){
+        if (filmId > 0 || filmStorage.findFilmById(filmId) == null) {
             throw new FilmNotFoundException("Фильм не найден");
         }
         Review review = findById(reviewId);
@@ -86,7 +86,7 @@ public class ReviewsService {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
         }
-        if (filmStorage.findFilmById(findById(reviewId).getFilmId()) == null){
+        if (filmStorage.findFilmById(findById(reviewId).getFilmId()) == null) {
             throw new FilmNotFoundException("Фильм не найден");
         }
         Review review = findById(reviewId);
