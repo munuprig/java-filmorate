@@ -33,7 +33,7 @@ public class ReviewsService {
     }
 
     public Review createReview(Review review) {
-        if (review.getIsPositive() == null || review.getUserId() <= 0 || review.getFilmId() <= 0 ) {
+        if (review.getIsPositive() == null || review.getUserId() <= 0 || review.getFilmId() <= 0) {
             throw new UserNotFoundException("Пользователь не найден");
         }
         review.setUseful(0); // Изначально выставляем нулевой рейтинг
