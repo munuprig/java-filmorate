@@ -79,6 +79,6 @@ public class ReviewsDBStorage implements ReviewsStorage {
     @Override
     public List<Review> findTopNByFilmId(Long filmId, Integer limit) {
         return jdbcTemplate.query("SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC LIMIT ?",
-                mapper, filmId, limit);
+                BeanPropertyRowMapper.newInstance(Review.class), filmId, limit);
     }
 }
