@@ -72,7 +72,7 @@ public class ReviewsDBStorage implements ReviewsStorage {
 
     @Override
     public List<Review> findByFilmId(Long filmId) {
-        return jdbcTemplate.query("SELECT * FROM reviews WHERE film_id = ?",
+        return jdbcTemplate.query("SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC LIMIT 10",
                 mapper, filmId);
     }
 

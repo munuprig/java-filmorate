@@ -80,15 +80,11 @@ public class ReviewsController {
 
     @GetMapping("/reviews?filmId={filmId}")
     public List<Review> getReviewsByFilmIdCountTen(
-            @RequestParam(required = false) Long filmId,
-            @RequestParam(required = false) Integer count
+            @RequestParam(required = false) Long filmId
     ) {
         log.info("GET /reviews?filmId= {} &count=10.", filmId);
-        if (count == null) {
-            count = 10;
-        }
         if (filmId != null && filmId > 0) {
-            return reviewService.findTopNByFilmId(filmId, count);
+            return reviewService.findByFilmId(filmId);
         } else {
             return reviewService.findAllReviews();
         }
