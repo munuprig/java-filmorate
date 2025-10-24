@@ -45,16 +45,15 @@ public class ReviewsService {
         }
         review.setUseful(0); // Изначально выставляем нулевой рейтинг
         Review createdReview = reviewsStorage.createReview(review);
-        Long reviewId = createdReview.getReviewId();
-        Event event = Event.builder()
+                Event event = Event.builder()
                 .timestamp(System.currentTimeMillis())
                 .userId(review.getUserId())
                 .eventType(EventType.REVIEW)
                 .operation(Operation.ADD)
-                .entityId(reviewId)
+                .entityId(createdReview.getReviewId())
                 .build();
         feedStorage.addEvent(event);
-        return reviewsStorage.createReview(review);
+        return createdReview;
     }
 
     public Review updateReview(Review updatedReview) {
