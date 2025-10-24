@@ -21,7 +21,7 @@ public class FeedDbStorage implements FeedStorage {
 
     @Override
     public List<Event> getFeedByUserId(Long userId) {
-        String sql = "SELECT * FROM feeds WHERE user_id = ? ORDER BY timestamp ASC";
+        String sql = "SELECT * FROM feeds WHERE user_id = ? ORDER BY timestamp DESC";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> Event.builder()
                 .eventId(rs.getLong("event_id"))
