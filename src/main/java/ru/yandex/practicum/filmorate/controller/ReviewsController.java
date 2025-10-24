@@ -65,7 +65,7 @@ public class ReviewsController {
     /**
      * Получить отзывы по идентификатору фильма
      */
-    @GetMapping("/reviews?filmId={filmId}&count={count}")
+    @GetMapping
     public List<Review> getReviewsByFilmId(
             @RequestParam(required = false) Long filmId,
             @RequestParam(defaultValue = "10") Integer count
