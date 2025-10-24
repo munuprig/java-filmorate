@@ -52,7 +52,7 @@ public class ReviewsService {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
         }
-        Review review = findById(reviewId);
+        Review review = reviewsStorage.findByUserId(reviewId, userId);
         if (review != null) {
             int currentRating = review.getUseful();
             review.setUseful(currentRating + 1);
@@ -66,7 +66,7 @@ public class ReviewsService {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
         }
-        Review review = findById(reviewId);
+        Review review = reviewsStorage.findByUserId(reviewId, userId);
         if (review != null) {
             int currentRating = review.getUseful();
             review.setUseful(currentRating - 1);
@@ -80,7 +80,7 @@ public class ReviewsService {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
         }
-        Review review = findById(reviewId);
+        Review review = reviewsStorage.findByUserId(reviewId, userId);
         if (review != null) {
             review.setUseful(0); // Убираем оценку
             updateReview(review);

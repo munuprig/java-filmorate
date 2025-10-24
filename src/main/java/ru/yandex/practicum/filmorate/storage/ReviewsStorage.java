@@ -17,5 +17,7 @@ public interface ReviewsStorage {
 
     List<Review> findByFilmId(Long filmId);   // Выборка отзывов по фильму
 
+    Review findByUserId(Long id, Long userId);
+
     List<Review> findTopNByFilmId(Long filmId, Integer limit); // Топ-N отзывов по полезности
 }
