@@ -72,7 +72,8 @@ public class ReviewsService {
         Review review = findById(reviewId);
         if (review != null) {
             int currentRating = review.getUseful();
-            review.setUseful(currentRating - 1);
+            int newUseful = currentRating - (currentRating >= 0 ? 2 : 1);
+            review.setUseful(newUseful);
             updateReview(review);
         } else {
             throw new ReviewsNotFoundException("Отзыв не найден");
@@ -85,9 +86,7 @@ public class ReviewsService {
         }
         Review review = findById(reviewId);
         if (review != null) {
-            int currentRating = review.getUseful();
-            int newUseful = currentRating - (currentRating >= 0 ? 2 : 1);
-            review.setUseful(newUseful);
+            review.setUseful(0);
             updateReview(review);
         } else {
             throw new ReviewsNotFoundException("Отзыв не найден");
