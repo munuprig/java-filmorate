@@ -51,8 +51,8 @@ public class ReviewsDBStorage implements ReviewsStorage {
 
     @Override
     public Review updateReview(Review review) {
-        jdbcTemplate.update("UPDATE reviews SET content=?, is_positive=? WHERE reviewId=?", review.getContent(),
-                review.getIsPositive(), review.getReviewId());
+        jdbcTemplate.update("UPDATE reviews SET content=?, is_positive=?, useful=? WHERE reviewId=?",
+                review.getContent(), review.getIsPositive(), review.getUseful(), review.getReviewId());
         return review;
     }
 
@@ -79,6 +79,6 @@ public class ReviewsDBStorage implements ReviewsStorage {
     @Override
     public List<Review> findTopNByFilmId(Long filmId, Integer limit) {
         return jdbcTemplate.query("SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC LIMIT ?",
-                BeanPropertyRowMapper.newInstance(Review.class), filmId, limit);
+                mapper, filmId, limit);
     }
 }

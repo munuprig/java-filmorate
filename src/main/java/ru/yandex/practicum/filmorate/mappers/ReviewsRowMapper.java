@@ -11,6 +11,7 @@ import java.sql.SQLException;
 public class ReviewsRowMapper implements RowMapper<Review> {
     @Override
     public Review mapRow(ResultSet resultSet, int rowNum) throws SQLException {
+
         return Review.builder()
                 .reviewId(resultSet.getLong("reviewId"))
                 .content(resultSet.getString("content"))
