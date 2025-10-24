@@ -3,11 +3,13 @@ package ru.yandex.practicum.filmorate.dao;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.ReviewsNotFoundException;
 import ru.yandex.practicum.filmorate.mappers.ReviewsRowMapper;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.ReviewsStorage;
@@ -56,8 +58,11 @@ public class ReviewsDBStorage implements ReviewsStorage {
 
     @Override
     public Review findReviewById(Long id) {
-        return jdbcTemplate.queryForObject("SELECT * FROM reviews WHERE reviewId = ?",
-                mapper, id);
+        try {
+            return jdbcTemplate.queryForObject("SELECT * FROM reviews WHERE reviewId = ?", mapper, id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new ReviewsNotFoundException("Отзыв с id = " + id + " не найден");
+        }
     }
 
     @Override
