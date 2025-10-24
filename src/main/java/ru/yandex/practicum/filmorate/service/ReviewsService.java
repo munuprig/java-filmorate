@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.storage.ReviewsStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -21,7 +22,9 @@ public class ReviewsService {
     private final FilmService filmService;
 
     public List<Review> findAllReviews() {
-        return reviewsStorage.findAll();
+        return reviewsStorage.findAll().stream()
+                .sorted((r1, r2) -> r2.getReviewId().compareTo(r1.getReviewId()))
+                .collect(Collectors.toList());
     }
 
     public Review findById(Long id) {
