@@ -3,11 +3,9 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ReviewsNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.ReviewsStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -19,7 +17,6 @@ import java.util.List;
 public class ReviewsService {
     private final ReviewsStorage reviewsStorage;
     private final UserStorage userStorage;
-    private final FilmStorage filmStorage;
 
     public List<Review> findAllReviews() {
         return reviewsStorage.findAll();
@@ -53,10 +50,6 @@ public class ReviewsService {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
         }
-        Long filmId = findById(reviewId).getFilmId();
-        if (filmId > 0 || filmStorage.findFilmById(filmId) == null) {
-            throw new FilmNotFoundException("Фильм не найден");
-        }
         Review review = findById(reviewId);
         if (review != null) {
             int currentRating = review.getUseful();
@@ -71,10 +64,6 @@ public class ReviewsService {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
         }
-        Long filmId = findById(reviewId).getFilmId();
-        if (filmId > 0 || filmStorage.findFilmById(filmId) == null) {
-            throw new FilmNotFoundException("Фильм не найден");
-        }
         Review review = findById(reviewId);
         if (review != null) {
             int currentRating = review.getUseful();
@@ -88,9 +77,6 @@ public class ReviewsService {
     public void removeLikeOrDislike(Long reviewId, Long userId) {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
-        }
-        if (filmStorage.findFilmById(findById(reviewId).getFilmId()) == null) {
-            throw new FilmNotFoundException("Фильм не найден");
         }
         Review review = findById(reviewId);
         if (review != null) {
