@@ -97,9 +97,14 @@ public class FilmService {
         } else if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь отсутствует");
         }
-        filmStorage.checkLikeOnFilm(filmId, userId);
-        likeStorage.addLike(filmId, userId);
 
+        // Проверяем, не поставил ли уже пользователь лайк
+        boolean canInsertLike = filmStorage.checkLikeOnFilm(filmId, userId);
+        if (canInsertLike) {
+            likeStorage.addLike(filmId, userId);
+        }
+
+        // В любом случае фиксируем событие в ленте (тесты ожидают событие даже при повторном запросе)
         Event event = Event.builder()
                 .timestamp(System.currentTimeMillis())
                 .userId(userId)
@@ -109,7 +114,9 @@ public class FilmService {
                 .build();
         feedStorage.addEvent(event);
 
-        log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
+        log.info("Пользователь {} {} лайк фильму {}", userId,
+                canInsertLike ? "поставил" : "повторно запросил",
+                filmId);
     }
 
     public void removeLike(Long filmId, Long userId) {
@@ -202,7 +209,6 @@ public class FilmService {
     }
 
     /**
-     *
      * Рекомендации
      */
     public List<Film> getRecommendedFilms(Long userId) {
