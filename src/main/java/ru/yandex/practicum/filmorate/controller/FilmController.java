@@ -94,4 +94,10 @@ public class FilmController {
         log.info("GET /films/search?query={}&by={}", query, by);
         return filmService.searchFilms(query, by);
     }
+
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam("userId") Long userId,
+                                     @RequestParam("friendId") Long friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
 }
