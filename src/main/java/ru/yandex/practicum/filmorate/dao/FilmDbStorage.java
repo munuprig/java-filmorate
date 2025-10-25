@@ -400,9 +400,9 @@ public class FilmDbStorage implements FilmStorage {
                 LEFT JOIN likes l1 ON f.id = l1.film_id AND l1.user_id = ?
                 LEFT JOIN likes l2 ON f.id = l2.film_id AND l2.user_id = ?
                 LEFT JOIN likes l3 ON f.id = l3.film_id
-                WHERE l1.user_id IS NOT NULL 
+                WHERE l1.user_id IS NOT NULL
                   AND l2.user_id IS NOT NULL
-                GROUP BY f.id, f.name, f.description, f.release_date, f.duration, 
+                GROUP BY f.id, f.name, f.description, f.release_date, f.duration,
                          mr.id, mr.name, g.id, g.name, l1.user_id
                 ORDER BY likes_count DESC
                 """;
