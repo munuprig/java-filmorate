@@ -382,30 +382,30 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getCommonFilms(long userId, long friendId) {
         String commonFilmsQuery = """
-            SELECT f.id,
-                   f.name,
-                   f.description,
-                   f.release_date,
-                   f.duration,
-                   mr.id AS mpa_id,
-                   mr.name AS mpa_name,
-                   g.id AS genre_id,
-                   g.name AS genre_name,
-                   l1.user_id AS like_id,
-                   COUNT(l3.user_id) AS likes_count
-            FROM films f
-            LEFT JOIN rating_mpa mr ON f.rating_mpa_id = mr.id
-            LEFT JOIN films_genre fg ON f.id = fg.film_id
-            LEFT JOIN genres g ON fg.genre_id = g.id
-            LEFT JOIN likes l1 ON f.id = l1.film_id AND l1.user_id = ?
-            LEFT JOIN likes l2 ON f.id = l2.film_id AND l2.user_id = ?
-            LEFT JOIN likes l3 ON f.id = l3.film_id
-            WHERE l1.user_id IS NOT NULL 
-              AND l2.user_id IS NOT NULL
-            GROUP BY f.id, f.name, f.description, f.release_date, f.duration, 
-                     mr.id, mr.name, g.id, g.name, l1.user_id
-            ORDER BY likes_count DESC
-            """;
+                SELECT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       mr.id AS mpa_id,
+                       mr.name AS mpa_name,
+                       g.id AS genre_id,
+                       g.name AS genre_name,
+                       l1.user_id AS like_id,
+                       COUNT(l3.user_id) AS likes_count
+                FROM films f
+                LEFT JOIN rating_mpa mr ON f.rating_mpa_id = mr.id
+                LEFT JOIN films_genre fg ON f.id = fg.film_id
+                LEFT JOIN genres g ON fg.genre_id = g.id
+                LEFT JOIN likes l1 ON f.id = l1.film_id AND l1.user_id = ?
+                LEFT JOIN likes l2 ON f.id = l2.film_id AND l2.user_id = ?
+                LEFT JOIN likes l3 ON f.id = l3.film_id
+                WHERE l1.user_id IS NOT NULL 
+                  AND l2.user_id IS NOT NULL
+                GROUP BY f.id, f.name, f.description, f.release_date, f.duration, 
+                         mr.id, mr.name, g.id, g.name, l1.user_id
+                ORDER BY likes_count DESC
+                """;
 
         List<Film> commonFilms = jdbcTemplate.query(commonFilmsQuery, mapper, userId, friendId);
 
