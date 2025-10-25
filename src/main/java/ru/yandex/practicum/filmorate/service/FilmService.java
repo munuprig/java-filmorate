@@ -117,13 +117,6 @@ public class FilmService {
         log.info("Фильм с id = {} удален", filmId);
     }
 
-    private void loadDirectorsForFilm(Film film) {
-        if (film != null) {
-            Set<Director> directors = directorService.findDirectorByFilmId(film.getId());
-            film.setDirectors(directors);
-        }
-    }
-
     private void loadDirectorsForFilms(List<Film> films) {
         if (films != null && !films.isEmpty()) {
             Map<Long, Film> filmMap = films.stream()
@@ -152,6 +145,35 @@ public class FilmService {
         // Проверяем что режиссер существует
         directorService.getDirectorById(directorId);
         List<Film> films = filmStorage.findFilmsByDirectorSortedByYear(directorId);
+        loadDirectorsForFilms(films);
+        return films;
+    }
+
+    /**
+     * Поиск фильмов по названию и/или режиссёру
+     */
+    public List<Film> searchFilms(String query, String by) {
+        log.info("Поиск фильмов по запросу: '{}', по полям: '{}'", query, by);
+
+        // Валидация параметров
+        if (query == null || query.trim().isEmpty()) {
+            throw new ValidationException("Запрос для поиска не может быть пустым");
+        }
+
+        if (by == null || by.trim().isEmpty()) {
+            by = "title"; // По умолчанию поиск по названию
+        }
+
+        // Проверяем корректность параметра by
+        String[] searchFields = by.split(",");
+        for (String field : searchFields) {
+            String trimmedField = field.trim().toLowerCase();
+            if (!trimmedField.equals("title") && !trimmedField.equals("director")) {
+                throw new ValidationException("Параметр 'by' может содержать только 'title' и/или 'director'");
+            }
+        }
+
+        List<Film> films = filmStorage.searchFilms(query.trim(), by);
         loadDirectorsForFilms(films);
         return films;
     }
