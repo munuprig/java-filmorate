@@ -102,4 +102,19 @@ class FilmDbStorageTest {
         assertThat(films.get(2)).hasFieldOrProperty("releaseDate");
         assertThat(films.get(2)).hasFieldOrPropertyWithValue("duration", 74);
     }
+
+    @Test
+    @Sql(scripts = {"/test-get-films.sql"})
+    void searchFilmsByTitle() {
+        List<Film> films = storage.searchFilms("film_name1", "title");
+        assertThat(films).hasSize(1);
+        assertThat(films.get(0)).hasFieldOrPropertyWithValue("name", "film_name1");
+    }
+
+    @Test
+    @Sql(scripts = {"/test-get-films.sql"})
+    void searchFilmsByPartialTitle() {
+        List<Film> films = storage.searchFilms("film", "title");
+        assertThat(films).hasSize(3);
+    }
 }

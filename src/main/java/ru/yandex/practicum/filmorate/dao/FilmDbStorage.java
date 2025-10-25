@@ -320,4 +320,62 @@ public class FilmDbStorage implements FilmStorage {
         uniqueFilms.addAll(films);
         return new ArrayList<>(uniqueFilms);
     }
+
+    @Override
+    public List<Film> searchFilms(String query, String by) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT DISTINCT f.id, ");
+        sql.append("f.name, ");
+        sql.append("f.description, ");
+        sql.append("f.release_date, ");
+        sql.append("f.duration, ");
+        sql.append("l.USER_ID AS like_id, ");
+        sql.append("mr.id AS mpa_id, ");
+        sql.append("mr.name AS mpa_name, ");
+        sql.append("g.id AS genre_id, ");
+        sql.append("g.name AS genre_name, ");
+        sql.append("COALESCE(like_count.cnt_like, 0) AS like_count ");
+        sql.append("FROM films AS f ");
+        sql.append("LEFT JOIN LIKES AS l ON (f.ID = l.FILM_ID) ");
+        sql.append("LEFT JOIN RATING_MPA AS mr ON (f.RATING_MPA_ID = mr.ID) ");
+        sql.append("LEFT JOIN FILMS_GENRE AS fg ON (f.ID = fg.film_id) ");
+        sql.append("LEFT JOIN GENRES AS g ON (fg.genre_id = g.ID) ");
+        sql.append("LEFT JOIN (SELECT FILM_ID, COUNT(user_id) AS cnt_like FROM likes GROUP BY FILM_ID) like_count ON (f.id = like_count.FILM_ID) ");
+
+        // Добавляем условия поиска в зависимости от параметра by
+        if (by.contains("director") && by.contains("title")) {
+            // Поиск и по названию, и по режиссёру
+            sql.append("LEFT JOIN films_director fd ON f.id = fd.film_id ");
+            sql.append("LEFT JOIN directors d ON fd.director_id = d.id ");
+            sql.append("WHERE (LOWER(f.name) LIKE LOWER(?) OR LOWER(d.name) LIKE LOWER(?)) ");
+        } else if (by.contains("director")) {
+            // Поиск только по режиссёру
+            sql.append("LEFT JOIN films_director fd ON f.id = fd.film_id ");
+            sql.append("LEFT JOIN directors d ON fd.director_id = d.id ");
+            sql.append("WHERE LOWER(d.name) LIKE LOWER(?) ");
+        } else {
+            // Поиск только по названию (по умолчанию)
+            sql.append("WHERE LOWER(f.name) LIKE LOWER(?) ");
+        }
+
+        sql.append("ORDER BY COALESCE(like_count.cnt_like, 0) DESC, f.id ");
+
+        String searchPattern = "%" + query + "%";
+        List<Film> films;
+
+        if (by.contains("director") && by.contains("title")) {
+            // Для поиска по обоим полям передаем параметр дважды
+            films = jdbcTemplate.query(sql.toString(), mapper, searchPattern, searchPattern);
+        } else {
+            films = jdbcTemplate.query(sql.toString(), mapper, searchPattern);
+        }
+
+        // Убираем дубликаты и возвращаем уникальные фильмы
+        Map<Long, Film> uniqueFilms = new LinkedHashMap<>();
+        for (Film film : films) {
+            uniqueFilms.put(film.getId(), film);
+        }
+
+        return new ArrayList<>(uniqueFilms.values());
+    }
 }
