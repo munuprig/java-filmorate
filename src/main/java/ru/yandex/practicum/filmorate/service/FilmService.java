@@ -22,6 +22,7 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final LikeStorage likeStorage;
     private final UserStorage userStorage;
+    private final UserService userService;
     private final MpaService mpaService;
     private final GenreStorage genreStorage;
     private final DirectorService directorService;
@@ -176,5 +177,13 @@ public class FilmService {
         List<Film> films = filmStorage.searchFilms(query.trim(), by);
         loadDirectorsForFilms(films);
         return films;
+    }
+
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        User friend = userService.findUserById(friendId);
+        List<Film> filmList = filmStorage.getCommonFilms(userId, friendId);
+        log.info("Отгрузил {} общих фильмов для пользователей {} и {}", filmList.size(),
+                userId, friendId);
+        return filmList;
     }
 }
