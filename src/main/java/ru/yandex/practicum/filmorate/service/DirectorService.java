@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.DirectorNotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.DirectorStorage;
@@ -35,6 +36,9 @@ public class DirectorService {
 
     public Director createDirector(Director newDirector) {
         log.info("Создание режиссера");
+        if (newDirector.getName() == null || newDirector.getName().trim().isEmpty()) {
+            throw new ValidationException("Имя режиссера не может быть пустым");
+        }
         return directorStorage.createDirector(newDirector);
     }
 

@@ -89,8 +89,17 @@ public class DirectorDbStorage implements DirectorStorage {
 
     @Override
     public void deleteDirector(Long directorId) {
-        String sql = "DELETE FROM directors WHERE id = ?";
-        jdbcTemplate.update(sql, directorId);
+        // 1. Сначала удаляем связи с фильмами
+        String deleteLinksSql = "DELETE FROM films_director WHERE director_id = ?";
+        jdbcTemplate.update(deleteLinksSql, directorId);
+
+        // 2. Затем удаляем самого режиссера
+        String deleteDirectorSql = "DELETE FROM directors WHERE id = ?";
+        int rowsDeleted = jdbcTemplate.update(deleteDirectorSql, directorId);
+
+        if (rowsDeleted == 0) {
+            throw new DirectorNotFoundException("Режиссер с id = " + directorId + " не найден");
+        }
     }
 
     @Override

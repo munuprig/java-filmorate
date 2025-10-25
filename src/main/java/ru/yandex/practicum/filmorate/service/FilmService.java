@@ -22,7 +22,6 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final LikeStorage likeStorage;
     private final UserStorage userStorage;
-    private final UserService userService;
     private final MpaService mpaService;
     private final GenreStorage genreStorage;
     private final DirectorService directorService;
@@ -40,22 +39,46 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
+        // Проверка ID
         if (film.getId() == null) {
             log.info("Id должен быть указан");
             throw new NullPointerException("Id должен быть указан");
         }
-        if (filmStorage.findFilmById(film.getId()) != null) {
-            return filmStorage.updateFilm(film);
+
+        // Проверка существования фильма
+        if (filmStorage.findFilmById(film.getId()) == null) {
+            log.info("Не найден фильм");
+            throw new FilmNotFoundException("Фильм с id = " + film.getId() + " не найден");
         }
-        log.info("Не найден фильм");
-        throw new FilmNotFoundException("Фильм с id = " + film.getId() + " не найден");
+
+        // Проверяем MPA
+        if (mpaService.findMpaById(film.getMpa().getId()) == null) {
+            throw new ValidationException("Указанный MPA не найден");
+        }
+
+        // Проверяем жанры
+        if (film.getGenres() != null) {
+            genreStorage.checkGenresExists(film.getGenres());
+        }
+
+        // Обновляем фильм
+        Film updatedFilm = filmStorage.updateFilm(film);
+
+        // Возвращаем полный фильм с загруженными жанрами и режиссерами
+        return findFilmById(updatedFilm.getId());
     }
 
     public Film findFilmById(Long filmId) {
         Film film = filmStorage.findFilmById(filmId);
         if (film != null) {
+            // Загружаем режиссеров
             Set<Director> directors = directorService.findDirectorByFilmId(filmId);
             film.setDirectors(directors);
+
+            // Загружаем жанры
+            List<Genre> genres = genreStorage.findGenresByFilmId(filmId);
+            film.setGenres(genres);
+
             return film;
         }
         throw new FilmNotFoundException("Фильм с id = " + filmId + " не найден");
@@ -64,14 +87,15 @@ public class FilmService {
     public List<Film> findAllFilms() {
         List<Film> films = filmStorage.findAllFilms();
         loadDirectorsForFilms(films);
+        loadGenresForFilms(films);
         return films;
     }
 
     public void addLike(Long filmId, Long userId) {
         if (filmStorage.findFilmById(filmId) == null) {
-            throw new FilmNotFoundException("Фильм отсуствует");
+            throw new FilmNotFoundException("Фильм отсутствует");
         } else if (userStorage.findUserById(userId) == null) {
-            throw new UserNotFoundException("Пользователь отсутсвует");
+            throw new UserNotFoundException("Пользователь отсутствует");
         }
         filmStorage.checkLikeOnFilm(filmId, userId);
         likeStorage.addLike(filmId, userId);
@@ -109,21 +133,16 @@ public class FilmService {
     }
 
     public List<Film> findPopular(Long count, Long genreId, Integer year) {
-        return filmStorage.findPopular(count, genreId, year);
+        List<Film> films = filmStorage.findPopular(count, genreId, year);
+        loadDirectorsForFilms(films);
+        loadGenresForFilms(films);
+        return films;
     }
 
     public void deleteFilm(Long filmId) {
         findFilmById(filmId);
         filmStorage.deleteFilm(filmId);
         log.info("Фильм с id = {} удален", filmId);
-    }
-
-    private void loadDirectorsForFilms(List<Film> films) {
-        if (films != null && !films.isEmpty()) {
-            Map<Long, Film> filmMap = films.stream()
-                    .collect(Collectors.toMap(Film::getId, Function.identity()));
-            directorService.loadDirectorsForFilms(filmMap);
-        }
     }
 
     /**
@@ -135,6 +154,7 @@ public class FilmService {
         directorService.getDirectorById(directorId);
         List<Film> films = filmStorage.findFilmsByDirectorSortedByLikes(directorId);
         loadDirectorsForFilms(films);
+        loadGenresForFilms(films);
         return films;
     }
 
@@ -147,6 +167,7 @@ public class FilmService {
         directorService.getDirectorById(directorId);
         List<Film> films = filmStorage.findFilmsByDirectorSortedByYear(directorId);
         loadDirectorsForFilms(films);
+        loadGenresForFilms(films);
         return films;
     }
 
@@ -176,11 +197,45 @@ public class FilmService {
 
         List<Film> films = filmStorage.searchFilms(query.trim(), by);
         loadDirectorsForFilms(films);
+        loadGenresForFilms(films);
         return films;
     }
 
+    /**
+     *
+     * Рекомендации
+     */
+    public List<Film> getRecommendedFilms(Long userId) {
+        List<Film> films = filmStorage.getRecommendedFilms(userId);
+        loadGenresForFilms(films);
+        loadDirectorsForFilms(films);
+        return films;
+    }
+
+    private void loadDirectorsForFilms(List<Film> films) {
+        if (films != null && !films.isEmpty()) {
+            Map<Long, Film> filmMap = films.stream()
+                    .collect(Collectors.toMap(Film::getId, Function.identity()));
+            directorService.loadDirectorsForFilms(filmMap);
+        }
+    }
+
+    private void loadGenresForFilms(List<Film> films) {
+        if (films != null && !films.isEmpty()) {
+            Map<Long, Film> filmMap = films.stream()
+                    .collect(Collectors.toMap(Film::getId, Function.identity()));
+
+            // Загружаем жанры для всех фильмов пачкой
+            genreStorage.loadGenresForFilms(filmMap);
+        }
+    }
+
     public List<Film> getCommonFilms(long userId, long friendId) {
-        User friend = userService.findUserById(friendId);
+        // Проверка пользователей через storage
+        if (userStorage.findUserById(userId) == null || userStorage.findUserById(friendId) == null) {
+            throw new UserNotFoundException("Пользователь не найден");
+        }
+
         List<Film> filmList = filmStorage.getCommonFilms(userId, friendId);
         log.info("Отгрузил {} общих фильмов для пользователей {} и {}", filmList.size(),
                 userId, friendId);

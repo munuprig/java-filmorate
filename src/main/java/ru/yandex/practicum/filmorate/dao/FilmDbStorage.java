@@ -93,12 +93,24 @@ public class FilmDbStorage implements FilmStorage {
                 film.getId()
         );
 
+        // ОБНОВЛЯЕМ ЖАНРЫ
+        jdbcTemplate.update("DELETE FROM films_genre WHERE film_id = ?", film.getId());
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            Set<Genre> uniqueGenres = new LinkedHashSet<>(film.getGenres());
+            for (Genre genre : uniqueGenres) {
+                jdbcTemplate.update("INSERT INTO films_genre (film_id, genre_id) VALUES (?, ?)",
+                        film.getId(), genre.getId());
+            }
+        }
+
+        // Обновляем режиссеров
         jdbcTemplate.update("DELETE FROM films_director WHERE film_id = ?", film.getId());
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
             saveDirectorsForFilm(film.getId(), film.getDirectors());
         }
 
-        return film;
+        // ВАЖНО: возвращаем полный фильм с загруженными данными
+        return findFilmById(film.getId());
     }
 
     @Override
@@ -312,11 +324,11 @@ public class FilmDbStorage implements FilmStorage {
                 LEFT JOIN films_genre fg ON f.id = fg.film_id
                 LEFT JOIN genres g ON fg.genre_id = g.id
                 WHERE f.id IN (SELECT film_id FROM films_director WHERE director_id = ?)
-                ORDER BY f.release_date, f.id
+                ORDER BY f.release_date ASC, f.id ASC
                 """;
 
         List<Film> films = jdbcTemplate.query(sql, mapper, directorId);
-        Set<Film> uniqueFilms = new TreeSet<>(Comparator.comparing(Film::getId));
+        Set<Film> uniqueFilms = new LinkedHashSet<>();
         uniqueFilms.addAll(films);
         return new ArrayList<>(uniqueFilms);
     }
