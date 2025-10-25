@@ -6,8 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.*;
 
 import java.util.List;
@@ -26,6 +25,7 @@ public class FilmService {
     private final MpaService mpaService;
     private final GenreStorage genreStorage;
     private final DirectorService directorService;
+    private final FeedStorage feedStorage;
 
     public Film createFilm(Film film) {
         if (mpaService.findMpaById(film.getMpa().getId()) == null) {
@@ -74,6 +74,17 @@ public class FilmService {
         }
         filmStorage.checkLikeOnFilm(filmId, userId);
         likeStorage.addLike(filmId, userId);
+
+        Event event = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(userId)
+                .eventType(EventType.LIKE)
+                .operation(Operation.ADD)
+                .entityId(filmId)
+                .build();
+        feedStorage.addEvent(event);
+
+        log.info("Пользователь {} поставил лайк фильму {}", userId, filmId);
     }
 
     public void removeLike(Long filmId, Long userId) {
@@ -83,6 +94,17 @@ public class FilmService {
             throw new UserNotFoundException("Пользователь с таким ID не найден!");
         }
         likeStorage.removeLike(filmId, userId);
+
+        Event event = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(userId)
+                .eventType(EventType.LIKE)
+                .operation(Operation.REMOVE)
+                .entityId(filmId)
+                .build();
+        feedStorage.addEvent(event);
+
+        log.info("Пользователь {} удалил лайк с фильма {}", userId, filmId);
     }
 
     public List<Film> findPopular(Long count, Long genreId, Integer year) {
