@@ -102,7 +102,7 @@ public class ReviewsService {
         feedStorage.addEvent(event);
     }
 
-    public void likeReview(Long reviewId, Long userId) {
+    public Review likeReview(Long reviewId, Long userId) {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
         }
@@ -110,13 +110,13 @@ public class ReviewsService {
         if (review != null) {
             int currentRating = review.getUseful();
             review.setUseful(currentRating + 1);
-            reviewsStorage.updateReview(review);
+            return reviewsStorage.updateReview(review);
         } else {
             throw new ReviewsNotFoundException("Отзыв не найден");
         }
     }
 
-    public void dislikeReview(Long reviewId, Long userId) {
+    public Review dislikeReview(Long reviewId, Long userId) {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
         }
@@ -125,20 +125,20 @@ public class ReviewsService {
             int currentRating = review.getUseful();
             // Дизлайк уменьшает полезность на 1
             review.setUseful(currentRating - 1);
-            reviewsStorage.updateReview(review);
+            return reviewsStorage.updateReview(review);
         } else {
             throw new ReviewsNotFoundException("Отзыв не найден");
         }
     }
 
-    public void removeLikeOrDislike(Long reviewId, Long userId) {
+    public Review removeLikeOrDislike(Long reviewId, Long userId) {
         if (userStorage.findUserById(userId) == null) {
             throw new UserNotFoundException("Пользователь не найден");
         }
         Review review = findById(reviewId);
         if (review != null) {
             review.setUseful(0);
-            reviewsStorage.updateReview(review);
+            return reviewsStorage.updateReview(review);
         } else {
             throw new ReviewsNotFoundException("Отзыв не найден");
         }
@@ -151,10 +151,13 @@ public class ReviewsService {
         return reviewsStorage.findByFilmId(filmId);
     }
 
-    public List<Review> findTopNByFilmId(Long filmId, Integer count) {
-        if (filmService.findFilmById(filmId) == null) {
-            throw new FilmNotFoundException("Фильм не найден");
+    public List<Review> getReviews(Long filmId, Integer count) {
+        if (filmId != null && filmId > 0) {
+            if (filmService.findFilmById(filmId) == null) {
+                throw new FilmNotFoundException("Фильм не найден");
+            }
+            return reviewsStorage.findTopNByFilmId(filmId, count);
         }
-        return reviewsStorage.findTopNByFilmId(filmId, count);
+        return reviewsStorage.findAll();
     }
 }
