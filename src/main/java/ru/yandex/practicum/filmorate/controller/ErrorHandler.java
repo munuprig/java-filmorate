@@ -60,6 +60,15 @@ public class ErrorHandler {
         );
     }
 
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse reviewsNotFoundException(final ReviewsNotFoundException e) {
+        log.info(e.getMessage());
+        return new ErrorResponse(
+                "Отзыв не найден",
+                e.getMessage()
+        );
+    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -90,4 +99,13 @@ public class ErrorHandler {
                 e.getMessage()
         );
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleDirectorNotFoundException(final DirectorNotFoundException e) {
+        log.info("Режиссер не найден: {}", e.getMessage());
+        return new ErrorResponse("Режиссер не найден", e.getMessage());
+    }
+
+
 }

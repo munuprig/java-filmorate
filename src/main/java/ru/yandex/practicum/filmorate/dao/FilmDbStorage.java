@@ -2,13 +2,12 @@ package ru.yandex.practicum.filmorate.dao;
 
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
-import org.springframework.jdbc.core.DataClassRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -16,6 +15,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Repository
@@ -32,14 +32,11 @@ public class FilmDbStorage implements FilmStorage {
                 "f.duration, " +
                 "l.USER_ID AS like_id, " +
                 "mr.id AS mpa_id, " +
-                "mr.name AS mpa_name, " +
-                "g.id AS genre_id, " +
-                "g.name AS genre_name " +
+                "mr.name AS mpa_name " +
                 "FROM films AS f " +
                 "LEFT JOIN LIKES AS l ON (f.ID = l.FILM_ID) " +
                 "LEFT JOIN RATING_MPA AS mr ON (f.RATING_MPA_ID  = mr.ID) " +
-                "LEFT JOIN FILMS_GENRE AS fg ON (f.ID  = fg.film_id) " +
-                "LEFT JOIN GENRES AS g ON (fg.genre_id = g.ID);", mapper);
+                ";", mapper);
         Set<Film> uniqueFilms = new TreeSet<>(Comparator.comparing(Film::getId));
         uniqueFilms.addAll(films);
         return new ArrayList<>(uniqueFilms);
@@ -68,6 +65,11 @@ public class FilmDbStorage implements FilmStorage {
                         genre.getId());
             }
         }
+
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            saveDirectorsForFilm(film.getId(), film.getDirectors());
+        }
+
         return film;
     }
 
@@ -86,7 +88,25 @@ public class FilmDbStorage implements FilmStorage {
                 film.getMpa().getId(),
                 film.getId()
         );
-        return film;
+
+        // ОБНОВЛЯЕМ ЖАНРЫ
+        jdbcTemplate.update("DELETE FROM films_genre WHERE film_id = ?", film.getId());
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            Set<Genre> uniqueGenres = new LinkedHashSet<>(film.getGenres());
+            for (Genre genre : uniqueGenres) {
+                jdbcTemplate.update("INSERT INTO films_genre (film_id, genre_id) VALUES (?, ?)",
+                        film.getId(), genre.getId());
+            }
+        }
+
+        // Обновляем режиссеров
+        jdbcTemplate.update("DELETE FROM films_director WHERE film_id = ?", film.getId());
+        if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
+            saveDirectorsForFilm(film.getId(), film.getDirectors());
+        }
+
+        // ВАЖНО: возвращаем полный фильм с загруженными данными
+        return findFilmById(film.getId());
     }
 
     @Override
@@ -98,14 +118,10 @@ public class FilmDbStorage implements FilmStorage {
                 "f.duration, " +
                 "l.USER_ID AS like_id, " +
                 "mr.id AS mpa_id, " +
-                "mr.name AS mpa_name, " +
-                "g.id AS genre_id , " +
-                "g.name AS genre_name " +
+                "mr.name AS mpa_name " +
                 "FROM films AS f " +
                 "LEFT JOIN LIKES AS l ON (f.ID = l.FILM_ID) " +
                 "LEFT JOIN RATING_MPA AS mr ON (f.RATING_MPA_ID  = mr.ID) " +
-                "LEFT JOIN FILMS_GENRE AS fg ON (f.ID  = fg.film_id) " +
-                "LEFT JOIN GENRES AS g ON (fg.genre_id = g.ID)" +
                 "WHERE F.ID = ?;", mapper, filmId);
         if (films.size() == 0) {
             return null;
@@ -114,24 +130,287 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> findPopular(Long count) {
-        return jdbcTemplate.query(
-                "SELECT ID, NAME, cnt_like " +
-                        "FROM PUBLIC.FILMS f " +
-                        "LEFT JOIN (select FILM_ID, COUNT(user_id) cnt_like from likes group by FILM_ID) l ON " +
-                        "(f.id = l.FILM_ID) " +
-                        "ORDER BY l.cnt_like DESC " +
-                        "LIMIT ?", new DataClassRowMapper<>(Film.class), count);
+    public List<Film> findPopular(Long count, Long genreId, Integer year) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT DISTINCT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       l.USER_ID AS like_id,
+                       mr.id AS mpa_id,
+                       mr.name AS mpa_name,
+                       COALESCE(like_count.cnt_like, 0) AS like_count
+                FROM films AS f
+                LEFT JOIN LIKES AS l ON (f.ID = l.FILM_ID)
+                LEFT JOIN RATING_MPA AS mr ON (f.RATING_MPA_ID = mr.ID)
+                LEFT JOIN (SELECT FILM_ID, COUNT(user_id) AS cnt_like FROM likes GROUP BY FILM_ID) like_count ON (f.id = like_count.FILM_ID)
+                WHERE 1=1
+                """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (genreId != null) {
+            sql.append("AND f.id IN (SELECT film_id FROM films_genre WHERE genre_id = ?) ");
+            params.add(genreId);
+        }
+
+        if (year != null) {
+            sql.append("AND EXTRACT(YEAR FROM f.release_date) = ? ");
+            params.add(year);
+        }
+
+        sql.append("ORDER BY COALESCE(like_count.cnt_like, 0) DESC, f.id LIMIT ? ");
+        params.add(count);
+
+        return jdbcTemplate.query(sql.toString(), mapper, params.toArray());
     }
 
     @Override
     public boolean checkLikeOnFilm(Long filmId, Long userId) {
-        if ((jdbcTemplate.query("SELECT user_id FROM likes " +
-                        "WHERE film_id = ? AND user_id = ?", new ColumnMapRowMapper(), filmId,
-                userId)).contains(userId)) {
-            throw new ValidationException("Пользователь с id = " + userId + " уже поставил лайк");
-        }
-        return true;
+        List<Map<String, Object>> result = jdbcTemplate.query("SELECT user_id FROM likes " +
+                "WHERE film_id = ? AND user_id = ?", new ColumnMapRowMapper(), filmId, userId);
+        return result.isEmpty(); // Возвращаем true, если лайка нет (можно добавить)
     }
 
+    @Override
+    public void deleteFilm(Long id) {
+        String sql = "DELETE FROM films WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
+
+    @Override
+    public List<Film> getRecommendedFilms(Long userId) {
+        String similarUserQuery = """
+                SELECT l2.user_id as similar_user_id,
+                       COUNT(*) as common_likes
+                FROM likes l1
+                JOIN likes l2 ON l1.film_id = l2.film_id
+                WHERE l1.user_id = ?
+                  AND l2.user_id != ?
+                GROUP BY l2.user_id
+                ORDER BY common_likes DESC
+                LIMIT 10
+                """;
+
+        List<Map<String, Object>> similarUsers = jdbcTemplate.query(similarUserQuery,
+                new ColumnMapRowMapper(), userId, userId);
+
+        if (similarUsers.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String recommendedFilmsQuery = """
+                SELECT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       l.user_id AS like_id,
+                       mr.id AS mpa_id,
+                       mr.name AS mpa_name,
+                       NULL AS genre_id,
+                       NULL AS genre_name
+                FROM films f
+                LEFT JOIN likes l ON f.id = l.film_id
+                LEFT JOIN rating_mpa mr ON f.rating_mpa_id = mr.id
+                -- Жанры не загружаем, их догружаем сервисом
+                WHERE f.id IN (
+                    SELECT film_id
+                    FROM likes
+                    WHERE user_id = ?
+                )
+                AND f.id NOT IN (
+                    SELECT film_id
+                    FROM likes
+                    WHERE user_id = ?
+                )
+                ORDER BY (
+                    SELECT COUNT(*)
+                    FROM likes l2
+                    WHERE l2.film_id = f.id
+                ) DESC
+                """;
+
+        List<Film> accumulated = new ArrayList<>();
+        for (Map<String, Object> row : similarUsers) {
+            Long similarUserId = (Long) row.get("similar_user_id");
+            List<Film> recommendedFilms = jdbcTemplate.query(recommendedFilmsQuery, mapper, similarUserId, userId);
+            accumulated.addAll(recommendedFilms);
+        }
+
+        return accumulated;
+    }
+
+    private void saveDirectorsForFilm(Long filmId, Set<Director> directors) {
+        String sql = "INSERT INTO films_director (film_id, director_id) VALUES (?, ?)";
+
+        List<Object[]> batchArgs = directors.stream()
+                .map(director -> new Object[]{filmId, director.getId()})
+                .collect(Collectors.toList());
+
+        jdbcTemplate.batchUpdate(sql, batchArgs);
+    }
+
+    @Override
+    public List<Film> findFilmsByDirectorSortedByLikes(Long directorId) {
+        String sql = """
+                SELECT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       l.USER_ID AS like_id,
+                       m.id AS mpa_id,
+                       m.name AS mpa_name,
+                       g.id AS genre_id,
+                       g.name AS genre_name
+                FROM films f
+                LEFT JOIN rating_mpa m ON f.rating_mpa_id = m.id
+                LEFT JOIN likes l ON f.id = l.film_id
+                LEFT JOIN films_genre fg ON f.id = fg.film_id
+                LEFT JOIN genres g ON fg.genre_id = g.id
+                WHERE f.id IN (SELECT film_id FROM films_director WHERE director_id = ?)
+                ORDER BY (
+                    SELECT COUNT(*) FROM likes l2 WHERE l2.film_id = f.id
+                ) DESC, f.id
+                """;
+
+        List<Film> films = jdbcTemplate.query(sql, mapper, directorId);
+        Set<Film> uniqueFilms = new TreeSet<>(Comparator.comparing(Film::getId));
+        uniqueFilms.addAll(films);
+        return new ArrayList<>(uniqueFilms);
+    }
+
+    @Override
+    public List<Film> findFilmsByDirectorSortedByYear(Long directorId) {
+        String sql = """
+                SELECT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       l.USER_ID AS like_id,
+                       m.id AS mpa_id,
+                       m.name AS mpa_name,
+                       g.id AS genre_id,
+                       g.name AS genre_name
+                FROM films f
+                LEFT JOIN rating_mpa m ON f.rating_mpa_id = m.id
+                LEFT JOIN likes l ON f.id = l.film_id
+                LEFT JOIN films_genre fg ON f.id = fg.film_id
+                LEFT JOIN genres g ON fg.genre_id = g.id
+                WHERE f.id IN (SELECT film_id FROM films_director WHERE director_id = ?)
+                ORDER BY f.release_date ASC, f.id ASC
+                """;
+
+        List<Film> films = jdbcTemplate.query(sql, mapper, directorId);
+        Set<Film> uniqueFilms = new LinkedHashSet<>();
+        uniqueFilms.addAll(films);
+        return new ArrayList<>(uniqueFilms);
+    }
+
+    @Override
+    public List<Film> searchFilms(String query, String by) {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT DISTINCT f.id, ");
+        sql.append("f.name, ");
+        sql = new StringBuilder("""
+                SELECT DISTINCT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       l.USER_ID AS like_id,
+                       mr.id AS mpa_id,
+                       mr.name AS mpa_name,
+                       g.id AS genre_id,
+                       g.name AS genre_name,
+                       COALESCE(like_count.cnt_like, 0) AS like_count
+                FROM films AS f
+                LEFT JOIN LIKES AS l ON (f.ID = l.FILM_ID)
+                LEFT JOIN RATING_MPA AS mr ON (f.RATING_MPA_ID = mr.ID)
+                LEFT JOIN FILMS_GENRE AS fg ON (f.ID = fg.film_id)
+                LEFT JOIN GENRES AS g ON (fg.genre_id = g.ID)
+                LEFT JOIN (SELECT FILM_ID, COUNT(user_id) AS cnt_like FROM likes GROUP BY FILM_ID) like_count ON (f.id = like_count.FILM_ID)
+                """);
+
+        // Добавляем условия поиска в зависимости от параметра by
+        if (by.contains("director") && by.contains("title")) {
+            // Поиск и по названию, и по режиссёру
+            sql.append("""
+                    LEFT JOIN films_director fd ON f.id = fd.film_id
+                    LEFT JOIN directors d ON fd.director_id = d.id
+                    WHERE (LOWER(f.name) LIKE LOWER(?) OR LOWER(d.name) LIKE LOWER(?))
+                    """);
+        } else if (by.contains("director")) {
+            // Поиск только по режиссёру
+            sql.append("""
+                    LEFT JOIN films_director fd ON f.id = fd.film_id
+                    LEFT JOIN directors d ON fd.director_id = d.id
+                    WHERE LOWER(d.name) LIKE LOWER(?)
+                    """);
+        } else {
+            // Поиск только по названию (по умолчанию)
+            sql.append("""
+                    WHERE LOWER(f.name) LIKE LOWER(?)
+                    """);
+        }
+
+        sql.append("ORDER BY COALESCE(like_count.cnt_like, 0) DESC, f.id ");
+
+        String searchPattern = "%" + query + "%";
+        List<Film> films;
+
+        if (by.contains("director") && by.contains("title")) {
+            // Для поиска по обоим полям передаем параметр дважды
+            films = jdbcTemplate.query(sql.toString(), mapper, searchPattern, searchPattern);
+        } else {
+            films = jdbcTemplate.query(sql.toString(), mapper, searchPattern);
+        }
+
+        // Убираем дубликаты и возвращаем уникальные фильмы
+        Map<Long, Film> uniqueFilms = new LinkedHashMap<>();
+        for (Film film : films) {
+            uniqueFilms.put(film.getId(), film);
+        }
+
+        return new ArrayList<>(uniqueFilms.values());
+    }
+
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        String commonFilmsQuery = """
+                SELECT f.id,
+                       f.name,
+                       f.description,
+                       f.release_date,
+                       f.duration,
+                       mr.id AS mpa_id,
+                       mr.name AS mpa_name,
+                       g.id AS genre_id,
+                       g.name AS genre_name,
+                       l1.user_id AS like_id,
+                       COUNT(l3.user_id) AS likes_count
+                FROM films f
+                LEFT JOIN rating_mpa mr ON f.rating_mpa_id = mr.id
+                LEFT JOIN films_genre fg ON f.id = fg.film_id
+                LEFT JOIN genres g ON fg.genre_id = g.id
+                LEFT JOIN likes l1 ON f.id = l1.film_id AND l1.user_id = ?
+                LEFT JOIN likes l2 ON f.id = l2.film_id AND l2.user_id = ?
+                LEFT JOIN likes l3 ON f.id = l3.film_id
+                WHERE l1.user_id IS NOT NULL
+                  AND l2.user_id IS NOT NULL
+                GROUP BY f.id, f.name, f.description, f.release_date, f.duration,
+                         mr.id, mr.name, g.id, g.name, l1.user_id
+                ORDER BY likes_count DESC
+                """;
+
+        List<Film> commonFilms = jdbcTemplate.query(commonFilmsQuery, mapper, userId, friendId);
+
+        Set<Film> uniqueFilms = new TreeSet<>(Comparator.comparing(Film::getId));
+        uniqueFilms.addAll(commonFilms);
+
+        return new ArrayList<>(uniqueFilms);
+    }
 }

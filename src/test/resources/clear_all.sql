@@ -1,2 +1,9 @@
+DELETE FROM feeds
+DELETE FROM likes
+DELETE FROM friends
+DELETE FROM films_director
+DELETE FROM films_genre
 DELETE FROM films
-DELETE FROM USERS
+DELETE FROM users
+DELETE FROM reviews
+DELETE FROM directors

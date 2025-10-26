@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.storage.FeedStorage;
 import ru.yandex.practicum.filmorate.storage.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -16,6 +17,8 @@ import java.util.*;
 public class UserService {
     private final UserStorage userStorage;
     private final FriendStorage friendStorage;
+    private final RecommendationService recommendationService;
+    private final FeedStorage feedStorage;
 
     public List<User> findAll() {
         return userStorage.findAll();
@@ -55,6 +58,16 @@ public class UserService {
             throw new UserNotFoundException("Пользователь не найден");
         }
         friendStorage.addFriend(userId, friendId);
+
+        Event event = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(userId)
+                .eventType(EventType.FRIEND)
+                .operation(Operation.ADD)
+                .entityId(friendId)
+                .build();
+        feedStorage.addEvent(event);
+
         log.info("Пользователь {} стал другом пользователя {}",
                 userStorage.findUserById(userId), userStorage.findUserById(friendId));
     }
@@ -64,6 +77,16 @@ public class UserService {
             throw new UserNotFoundException("Пользователь не найден");
         }
         friendStorage.removeFriend(userId, friendId);
+
+        Event event = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(userId)
+                .eventType(EventType.FRIEND)
+                .operation(Operation.REMOVE)
+                .entityId(friendId)
+                .build();
+        feedStorage.addEvent(event);
+
         log.info("Пользователи {} {} больше не друзья ",
                 userStorage.findUserById(userId), userStorage.findUserById(friendId));
     }
@@ -82,4 +105,27 @@ public class UserService {
         }
         return friendStorage.findCommonFriends(userId, friendId);
     }
+
+    public void deleteUser(Long userId) {
+        if (userStorage.findUserById(userId) == null) {
+            throw new UserNotFoundException("Пользователь не найден");
+        }
+        userStorage.deleteUser(userId);
+        log.info("пользователь с id =  {}  удалён", userId);
+    }
+
+    public List<Film> getRecommendations(Long userId) {
+        if (userStorage.findUserById(userId) == null) {
+            throw new UserNotFoundException("Пользователь с id = " + userId + " не найден");
+        }
+        return recommendationService.getRecommendedFilms(userId);
+    }
+
+    public List<Event> getFeed(Long userId) {
+        if (userStorage.findUserById(userId) == null) {
+            throw new UserNotFoundException("Пользователь с id = " + userId + " не найден");
+        }
+        return feedStorage.getFeedByUserId(userId);
+    }
+
 }

@@ -7,7 +7,7 @@ import java.util.List;
 public interface FilmStorage {
     List<Film> findAllFilms();
 
-    List<Film> findPopular(Long count);
+    List<Film> findPopular(Long count, Long genreId, Integer year);
 
     Film createFilm(Film film);
 
@@ -16,4 +16,16 @@ public interface FilmStorage {
     Film findFilmById(Long id);
 
     boolean checkLikeOnFilm(Long filmId, Long userId);
+
+    void deleteFilm(Long id);
+
+    List<Film> getRecommendedFilms(Long userId);
+
+    List<Film> findFilmsByDirectorSortedByYear(Long directorId);
+
+    List<Film> findFilmsByDirectorSortedByLikes(Long directorId);
+
+    List<Film> searchFilms(String query, String by);
+
+    List<Film> getCommonFilms(long userId, long friendId);
 }

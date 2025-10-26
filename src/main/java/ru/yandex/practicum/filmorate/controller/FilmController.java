@@ -43,6 +43,13 @@ public class FilmController {
         return filmService.updateFilm(film);
     }
 
+    @DeleteMapping("/{id}")
+    public void deleteFilm(
+            @PathVariable("id") @Positive Long id) {
+        log.info("DELETE / {}.", id);
+        filmService.deleteFilm(id);
+    }
+
     @PutMapping("/{id}/like/{userId}")
     public void addFilmLike(@PathVariable("id") Long id, @PathVariable("userId") Long userId) {
         log.info("PUT / {} / like / {}", id, userId);
@@ -56,8 +63,34 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> findPopular(@RequestParam(defaultValue = "10") @Positive Long count) {
-        log.info("GET / popular");
-        return filmService.findPopular(count);
+    public List<Film> findPopular(@RequestParam(defaultValue = "10") @Positive Long count,
+                                  @RequestParam(required = false) Long genreId,
+                                  @RequestParam(required = false) Integer year) {
+        log.info("GET / popular with count={}, genreId={}, year={}", count, genreId, year);
+        return filmService.findPopular(count, genreId, year);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<Film> getFilmsByDirector(
+            @PathVariable Long directorId,
+            @RequestParam(defaultValue = "likes") String sortBy) {
+
+        log.info("Запрос фильмов режиссера {} с сортировкой по: {}", directorId, sortBy);
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<Film> searchFilms(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "title") String by) {
+
+        log.info("GET /films/search?query={}&by={}", query, by);
+        return filmService.searchFilms(query, by);
+    }
+
+    @GetMapping("/common")
+    public List<Film> getCommonFilms(@RequestParam("userId") Long userId,
+                                     @RequestParam("friendId") Long friendId) {
+        return filmService.getCommonFilms(userId, friendId);
     }
 }

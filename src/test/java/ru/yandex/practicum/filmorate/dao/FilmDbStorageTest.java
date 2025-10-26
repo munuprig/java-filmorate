@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +38,8 @@ class FilmDbStorageTest {
                 200,
                 new Mpa(1L, "G"),
                 new ArrayList<>(),
-                new ArrayList<>()
+                new ArrayList<>(),
+                new HashSet<>()
         ));
         Film film = storage.findFilmById(1L);
         assertThat(film).hasFieldOrPropertyWithValue("name", "updateName");
@@ -57,7 +59,8 @@ class FilmDbStorageTest {
                 200,
                 new Mpa(1L, "G"),
                 null,
-                null
+                null,
+                new HashSet<>()
         ));
 
         Film film = storage.findFilmById(1L);
@@ -98,5 +101,20 @@ class FilmDbStorageTest {
         assertThat(films.get(2)).hasFieldOrPropertyWithValue("description", "description");
         assertThat(films.get(2)).hasFieldOrProperty("releaseDate");
         assertThat(films.get(2)).hasFieldOrPropertyWithValue("duration", 74);
+    }
+
+    @Test
+    @Sql(scripts = {"/test-get-films.sql"})
+    void searchFilmsByTitle() {
+        List<Film> films = storage.searchFilms("film_name1", "title");
+        assertThat(films).hasSize(1);
+        assertThat(films.get(0)).hasFieldOrPropertyWithValue("name", "film_name1");
+    }
+
+    @Test
+    @Sql(scripts = {"/test-get-films.sql"})
+    void searchFilmsByPartialTitle() {
+        List<Film> films = storage.searchFilms("film", "title");
+        assertThat(films).hasSize(3);
     }
 }

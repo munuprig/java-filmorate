@@ -12,7 +12,6 @@ import java.util.ArrayList;
 public class UserRowMapper implements RowMapper<User> {
 
     public User mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-        Long userId = resultSet.getLong("id");
 
         User user = User.builder()
                 .id(resultSet.getLong("id"))
@@ -23,7 +22,6 @@ public class UserRowMapper implements RowMapper<User> {
                 .friends(new ArrayList<>())
                 .build();
 
-        // если есть friends:
         if (resultSet.getLong("FRIENDS_id") != 0) {
             if (!user.getFriends().contains(resultSet.getLong("FRIENDS_id"))) {
                 user.getFriends().add(resultSet.getLong("FRIENDS_id"));
