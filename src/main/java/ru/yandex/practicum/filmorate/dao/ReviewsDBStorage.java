@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -28,7 +27,7 @@ public class ReviewsDBStorage implements ReviewsStorage {
 
     @Override
     public List<Review> findAll() {
-        return jdbcTemplate.query("SELECT * FROM reviews", BeanPropertyRowMapper.newInstance(Review.class));
+        return jdbcTemplate.query("SELECT * FROM reviews ORDER BY useful DESC, reviewId ASC", mapper);
     }
 
     @Override
@@ -72,7 +71,7 @@ public class ReviewsDBStorage implements ReviewsStorage {
 
     @Override
     public List<Review> findByFilmId(Long filmId) {
-        return jdbcTemplate.query("SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC LIMIT 10",
+        return jdbcTemplate.query("SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC, reviewId ASC LIMIT 10",
                 mapper, filmId);
     }
 
@@ -88,7 +87,7 @@ public class ReviewsDBStorage implements ReviewsStorage {
 
     @Override
     public List<Review> findTopNByFilmId(Long filmId, Integer limit) {
-        return jdbcTemplate.query("SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC LIMIT ?",
+        return jdbcTemplate.query("SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC, reviewId ASC LIMIT ?",
                 mapper, filmId, limit);
     }
 }

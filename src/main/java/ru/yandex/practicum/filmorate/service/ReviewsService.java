@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.storage.ReviewsStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,25 +26,37 @@ public class ReviewsService {
     private final FeedStorage feedStorage;
 
     public List<Review> findAllReviews() {
-        return reviewsStorage.findAll().stream()
-                .sorted((r1, r2) -> r2.getReviewId().compareTo(r1.getReviewId()))
-                .collect(Collectors.toList());
+        return reviewsStorage.findAll();
     }
 
     public Review findById(Long id) {
-        if (reviewsStorage.findReviewById(id) != null) {
+        try {
             return reviewsStorage.findReviewById(id);
+        } catch (ReviewsNotFoundException e) {
+            throw new ReviewsNotFoundException("Отзыв не найден с id = " + id);
         }
-        throw new ReviewsNotFoundException("Отзыв не найден с id = " + id);
     }
 
     public Review createReview(Review review) {
-        if (review.getUserId() <= 0L || review.getFilmId() <= 0L) {
+        // Сначала проверяем валидацию полей
+        if (review.getUserId() == null || review.getUserId() <= 0) {
             throw new UserNotFoundException("Пользователь не найден");
         }
+        if (review.getFilmId() == null || review.getFilmId() <= 0) {
+            throw new FilmNotFoundException("Фильм не найден");
+        }
+
+        // Затем проверяем существование пользователя и фильма
+        if (userStorage.findUserById(review.getUserId()) == null) {
+            throw new UserNotFoundException("Пользователь не найден");
+        }
+        if (filmService.findFilmById(review.getFilmId()) == null) {
+            throw new FilmNotFoundException("Фильм не найден");
+        }
+
         review.setUseful(0); // Изначально выставляем нулевой рейтинг
         Review createdReview = reviewsStorage.createReview(review);
-                Event event = Event.builder()
+        Event event = Event.builder()
                 .timestamp(System.currentTimeMillis())
                 .userId(review.getUserId())
                 .eventType(EventType.REVIEW)
@@ -57,7 +68,14 @@ public class ReviewsService {
     }
 
     public Review updateReview(Review updatedReview) {
-        findById(updatedReview.getReviewId());
+        Review existingReview = findById(updatedReview.getReviewId());
+
+        // Сохраняем оригинальные user_id и film_id
+        updatedReview.setUserId(existingReview.getUserId());
+        updatedReview.setFilmId(existingReview.getFilmId());
+        // Поле useful нельзя менять через обычный update
+        updatedReview.setUseful(existingReview.getUseful());
+
         Review review = reviewsStorage.updateReview(updatedReview);
 
         Event event = Event.builder()
@@ -68,7 +86,7 @@ public class ReviewsService {
                 .entityId(review.getReviewId())
                 .build();
         feedStorage.addEvent(event);
-        return reviewsStorage.updateReview(updatedReview);
+        return review;
     }
 
     public void deleteReview(Long id) {
@@ -92,7 +110,7 @@ public class ReviewsService {
         if (review != null) {
             int currentRating = review.getUseful();
             review.setUseful(currentRating + 1);
-            updateReview(review);
+            reviewsStorage.updateReview(review);
         } else {
             throw new ReviewsNotFoundException("Отзыв не найден");
         }
@@ -105,9 +123,9 @@ public class ReviewsService {
         Review review = findById(reviewId);
         if (review != null) {
             int currentRating = review.getUseful();
-            int newUseful = currentRating - (currentRating >= 0 ? 2 : 1);
-            review.setUseful(newUseful);
-            updateReview(review);
+            // Дизлайк уменьшает полезность на 1
+            review.setUseful(currentRating - 1);
+            reviewsStorage.updateReview(review);
         } else {
             throw new ReviewsNotFoundException("Отзыв не найден");
         }
@@ -120,7 +138,7 @@ public class ReviewsService {
         Review review = findById(reviewId);
         if (review != null) {
             review.setUseful(0);
-            updateReview(review);
+            reviewsStorage.updateReview(review);
         } else {
             throw new ReviewsNotFoundException("Отзыв не найден");
         }

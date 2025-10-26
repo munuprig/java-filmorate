@@ -9,54 +9,32 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
-    Map<Long, Film> filmMap = new HashMap<>();
 
+    @Override
     public Film mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-        Long filmId = resultSet.getLong("id");
-        Film film = filmMap.get(filmId);
+        Film film = Film.builder()
+                .id(resultSet.getLong("id"))
+                .name(resultSet.getString("name"))
+                .description(resultSet.getString("description"))
+                .releaseDate(resultSet.getDate("release_date").toLocalDate())
+                .duration(resultSet.getInt("duration"))
+                .genres(new ArrayList<>()) // пустой список, жанры загрузим отдельно
+                .likes(new ArrayList<>())
+                .mpa(Mpa.builder()
+                        .id(resultSet.getLong("mpa_id"))
+                        .name(resultSet.getString("mpa_name"))
+                        .build())
+                .build();
 
-        if (film == null) {
-            film = Film.builder()
-                    .id(filmId)
-                    .name(resultSet.getString("name"))
-                    .description(resultSet.getString("description"))
-                    .releaseDate(resultSet.getDate("release_date").toLocalDate())
-                    .duration(resultSet.getInt("duration"))
-                    .genres(new ArrayList<Genre>())
-                    .likes(new ArrayList<Long>())
-                    .mpa(Mpa.builder()
-                            .id(resultSet.getLong("mpa_id"))
-                            .name(resultSet.getString("mpa_name"))
-                            .build())
-                    .build();
-            filmMap.put(filmId, film);
-        }
-
+        // Только лайки оставляем здесь, так как они простые
         if (resultSet.getLong("like_id") != 0) {
-            if (!film.getLikes().contains(resultSet.getLong("like_id"))) {
-                film.getLikes().add(resultSet.getLong("like_id"));
-            }
+            film.getLikes().add(resultSet.getLong("like_id"));
         }
 
-        if (resultSet.getLong("genre_id") != 0) {
-            if (!film.getGenres().contains(Genre.builder()
-                    .id(resultSet.getLong("genre_id"))
-                    .name(resultSet.getString("genre_name"))
-                    .build())) {
-                film.getGenres().add(Genre.builder()
-                        .id(resultSet.getLong("genre_id"))
-                        .name(resultSet.getString("genre_name"))
-                        .build());
-            }
-        }
-        if (resultSet.isLast()) {
-            filmMap.clear();
-        }
         return film;
     }
 }

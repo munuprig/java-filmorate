@@ -29,9 +29,9 @@ public class ReviewsController {
     /**
      * Получить список всех отзывов
      */
-    @GetMapping
+    @GetMapping("/all")
     public List<Review> getAllReviews() {
-        log.info("GET / '/reviews'");
+        log.info("GET / '/reviews/all'");
         return reviewService.findAllReviews();
     }
 
@@ -65,11 +65,8 @@ public class ReviewsController {
     /**
      * Получить отзывы по идентификатору фильма
      */
-    @GetMapping("/reviews?filmId={filmId}&count={count}")
-    public List<Review> getReviewsByFilmId(
-            @RequestParam(required = false) Long filmId,
-            @RequestParam(defaultValue = "10") Integer count
-    ) {
+    @GetMapping
+    public List<Review> getReviewsByFilmId(@RequestParam(required = false) Long filmId, @RequestParam(defaultValue = "10") Integer count) {
         log.info("GET /reviews?filmId= {} &count= {}.", filmId, count);
         if (filmId != null && filmId > 0) {
             return reviewService.findTopNByFilmId(filmId, count);

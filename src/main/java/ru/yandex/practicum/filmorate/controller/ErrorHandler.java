@@ -106,4 +106,6 @@ public class ErrorHandler {
         log.info("Режиссер не найден: {}", e.getMessage());
         return new ErrorResponse("Режиссер не найден", e.getMessage());
     }
+
+
 }

@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.mappers.FilmRowMapper;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -93,12 +92,24 @@ public class FilmDbStorage implements FilmStorage {
                 film.getId()
         );
 
+        // ОБНОВЛЯЕМ ЖАНРЫ
+        jdbcTemplate.update("DELETE FROM films_genre WHERE film_id = ?", film.getId());
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            Set<Genre> uniqueGenres = new LinkedHashSet<>(film.getGenres());
+            for (Genre genre : uniqueGenres) {
+                jdbcTemplate.update("INSERT INTO films_genre (film_id, genre_id) VALUES (?, ?)",
+                        film.getId(), genre.getId());
+            }
+        }
+
+        // Обновляем режиссеров
         jdbcTemplate.update("DELETE FROM films_director WHERE film_id = ?", film.getId());
         if (film.getDirectors() != null && !film.getDirectors().isEmpty()) {
             saveDirectorsForFilm(film.getId(), film.getDirectors());
         }
 
-        return film;
+        // ВАЖНО: возвращаем полный фильм с загруженными данными
+        return findFilmById(film.getId());
     }
 
     @Override
@@ -181,10 +192,7 @@ public class FilmDbStorage implements FilmStorage {
     public boolean checkLikeOnFilm(Long filmId, Long userId) {
         List<Map<String, Object>> result = jdbcTemplate.query("SELECT user_id FROM likes " +
                 "WHERE film_id = ? AND user_id = ?", new ColumnMapRowMapper(), filmId, userId);
-        if (!result.isEmpty()) {
-            throw new ValidationException("Пользователь с id = " + userId + " уже поставил лайк");
-        }
-        return true;
+        return result.isEmpty(); // Возвращаем true, если лайка нет (можно добавить)
     }
 
     @Override
@@ -222,13 +230,13 @@ public class FilmDbStorage implements FilmStorage {
                        f.description,
                        f.release_date,
                        f.duration,
+                       l.user_id AS like_id,
                        mr.id AS mpa_id,
                        mr.name AS mpa_name,
                        g.id AS genre_id,
-                       g.name AS genre_name,
-                       l.user_id AS like_id
+                       g.name AS genre_name
                 FROM films f
-                LEFT JOIN likes l ON f.id = l.film_id AND l.user_id = ?
+                LEFT JOIN likes l ON f.id = l.film_id
                 LEFT JOIN rating_mpa mr ON f.rating_mpa_id = mr.id
                 LEFT JOIN films_genre fg ON f.id = fg.film_id
                 LEFT JOIN genres g ON fg.genre_id = g.id
@@ -237,7 +245,11 @@ public class FilmDbStorage implements FilmStorage {
                     FROM likes
                     WHERE user_id = ?
                 )
-                AND l.user_id IS NULL
+                AND f.id NOT IN (
+                    SELECT film_id
+                    FROM likes
+                    WHERE user_id = ?
+                )
                 ORDER BY (
                     SELECT COUNT(*)
                     FROM likes l2
@@ -245,7 +257,7 @@ public class FilmDbStorage implements FilmStorage {
                 ) DESC
                 """;
 
-        List<Film> recommendedFilms = jdbcTemplate.query(recommendedFilmsQuery, mapper, userId, similarUserId);
+        List<Film> recommendedFilms = jdbcTemplate.query(recommendedFilmsQuery, mapper, similarUserId, userId);
 
         Set<Film> uniqueFilms = new TreeSet<>(Comparator.comparing(Film::getId));
         uniqueFilms.addAll(recommendedFilms);
@@ -312,11 +324,11 @@ public class FilmDbStorage implements FilmStorage {
                 LEFT JOIN films_genre fg ON f.id = fg.film_id
                 LEFT JOIN genres g ON fg.genre_id = g.id
                 WHERE f.id IN (SELECT film_id FROM films_director WHERE director_id = ?)
-                ORDER BY f.release_date, f.id
+                ORDER BY f.release_date ASC, f.id ASC
                 """;
 
         List<Film> films = jdbcTemplate.query(sql, mapper, directorId);
-        Set<Film> uniqueFilms = new TreeSet<>(Comparator.comparing(Film::getId));
+        Set<Film> uniqueFilms = new LinkedHashSet<>();
         uniqueFilms.addAll(films);
         return new ArrayList<>(uniqueFilms);
     }
