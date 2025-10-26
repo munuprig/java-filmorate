@@ -35,7 +35,7 @@ public class FeedDbStorage implements FeedStorage {
     }
 
     @Override
-    public Event addEvent(Event event) {
+    public void addEvent(Event event) {
         String sql = "INSERT INTO feeds (timestamp, user_id, event_type, operation, entity_id) " +
                 "VALUES (?, ?, ?, ?, ?)";
 
@@ -52,6 +52,5 @@ public class FeedDbStorage implements FeedStorage {
         }, keyHolder);
 
         event.setEventId(keyHolder.getKey().longValue());
-        return event;
     }
 }

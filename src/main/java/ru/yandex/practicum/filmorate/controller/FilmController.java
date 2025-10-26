@@ -76,14 +76,7 @@ public class FilmController {
             @RequestParam(defaultValue = "likes") String sortBy) {
 
         log.info("Запрос фильмов режиссера {} с сортировкой по: {}", directorId, sortBy);
-
-        switch (sortBy.toLowerCase()) {
-            case "year":
-                return filmService.getFilmsByDirectorSortedByYear(directorId);
-            case "likes":
-            default:
-                return filmService.getFilmsByDirectorSortedByLikes(directorId);
-        }
+        return filmService.getFilmsByDirector(directorId, sortBy);
     }
 
     @GetMapping("/search")
